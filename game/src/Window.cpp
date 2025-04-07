@@ -7,10 +7,12 @@
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
 
+#include "CardEngine.h"
+
 static uint8_t s_GLFWwindowCount = 0;
 
 static void GLFWErrorCallback(int error, const char* desc){
-    printf("GLFW Error (%d): %s", error, desc);
+    CE_ERROR("GLFW Error ({0}): {1}", error, desc);
 }
 
 Window::Window(const WindowProps& props){
@@ -27,11 +29,11 @@ void Window::Init(const WindowProps& props){
     m_Data.Width = props.m_Width;
     m_Data.Height = props.m_Height;
 
-    printf("Creating window");
+    CE_INFO("Creating window {0} ({1}, {2})", props.m_Title, props.m_Width, props.m_Height);
 
     if( s_GLFWwindowCount == 0){
         int success = glfwInit();
-        // assert here
+        CE_CORE_ASSERT(success, "Could not initialize GLFW!");
         glfwSetErrorCallback(GLFWErrorCallback);
     }
 

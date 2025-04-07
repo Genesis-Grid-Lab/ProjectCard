@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/Config.h"
-
+#include "CE_Assert.h"
 #include "Window.h"
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
@@ -13,7 +13,7 @@ struct ApplicationCommandLineArgs{
     char** Args = nullptr;
 
     const char* operator[](int index) const{
-        //assert here
+        CE_CORE_ASSERT(index < Count);
         return Args[index];
     }
 };

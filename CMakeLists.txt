@@ -18,6 +18,12 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(ProjectCard C CXX)
 
+# enable console logging
+
+if(${CMAKE_BUILD_TYPE} MATCHES Debug)
+    add_definitions(-DCE_DEBUG)
+endif(${CMAKE_BUILD_TYPE} MATCHES Debug)
+
 add_subdirectory(vendor/glfw)
 add_subdirectory(vendor/glad)
 add_subdirectory(vendor/glm)

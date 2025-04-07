@@ -5,7 +5,7 @@ Application* Application::s_Instance = nullptr;
 Application::Application(const std::string& name, ApplicationCommandLineArgs args)
     :m_CommandLineArgs(args){
 
-        // Assert here
+        CE_CORE_ASSERT(!s_Instance, "Application already exists!");
 
         s_Instance = this;
         m_Window = CreateScope<Window>(WindowProps(name));
