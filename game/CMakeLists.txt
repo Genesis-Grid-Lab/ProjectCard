@@ -7,12 +7,14 @@ add_executable(${PROJECT_NAME} ${sources} ${headers})
 
 # includes directories
 target_include_directories(${PROJECT_NAME} PUBLIC
-    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/vendor/glfw/include
+    ${CMAKE_SOURCE_DIR}/vendor/glm
 )
 
 # link libraries
 target_link_libraries(${PROJECT_NAME} PUBLIC     
-    # CardEngine
+    glfw
 )
 
 # copy data

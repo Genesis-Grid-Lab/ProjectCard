@@ -1,8 +1,15 @@
-#include <stdio.h>
+#include "Application.h"
 
-int main(){
+int main(int argc, char** argv){
     
-    printf("hello world!\n");
+    printf("init\n");
+
+    auto app = new Application("Card Game", {argc, argv});
+
+    app->Run();
+
+
+    delete app;
 
     return 0;
 }
