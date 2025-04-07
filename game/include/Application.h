@@ -1,10 +1,14 @@
 #pragma once
 
 #include "Core/Config.h"
-#include "CE_Assert.h"
+#include "CardEngine.h"
+
 #include "Window.h"
+#include "Core/LayerStack.h"
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
+
+#include "Core/Timestep.h"
 
 int main(int argc, char** argv);
 
@@ -26,6 +30,9 @@ public:
 
     void OnEvent(Event& e);
 
+    void PushLayer(Layer* layer);
+    void PushOverlay(Layer* layer);
+
     Window& GetWindow() { return *m_Window;}
 
     void Close();
@@ -44,7 +51,7 @@ private:
 
     bool m_Running = true;
     bool m_Minimized = false;
-
+    LayerStack m_LayerStack;
     float m_LastFrameTime = 0.0f;
 private:
     static Application* s_Instance;
