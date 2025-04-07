@@ -1,3 +1,4 @@
+#include <Renderer/GraphicsContext.h>
 #include "Window.h"
 
 #include <stdio.h>
@@ -6,7 +7,6 @@
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
-
 #include "CardEngine.h"
 
 static uint8_t s_GLFWwindowCount = 0;
@@ -38,11 +38,16 @@ void Window::Init(const WindowProps& props){
     }
 
     #if defined(G_DEBUG)
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+        if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
     #endif
 
     m_Window = glfwCreateWindow((int)props.m_Width, (int)props.m_Height, m_Data.Title.c_str(), nullptr, nullptr);
     ++s_GLFWwindowCount;
+
+    glfwMakeContextCurrent(m_Window);
+    m_Context = CreateScope<CE::GraphicsContext>();
+    m_Context->Init((GLADloadproc)glfwGetProcAddress);
 
     glfwSetWindowUserPointer(m_Window, &m_Data);
     SetVSync(true);
@@ -149,7 +154,7 @@ void Window::Shutdown(){
 
 void Window::OnUpdate(){
     glfwPollEvents();
-
+    glfwSwapBuffers(m_Window);
 }
 
 void Window::SetVSync(bool enabled){

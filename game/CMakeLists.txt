@@ -16,11 +16,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/vendor/glfw/include
     ${CMAKE_SOURCE_DIR}/vendor/glm
     ${CMAKE_SOURCE_DIR}/engine/include
+    ${CMAKE_SOURCE_DIR}/vendor/imgui
+    ${CMAKE_SOURCE_DIR}/vendor/imgui/backends
 )
 
 # link libraries
 target_link_libraries(${PROJECT_NAME} PUBLIC     
     glfw
+    imgui
     CardEngine
 )
 

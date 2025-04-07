@@ -9,6 +9,7 @@
 #include "Events/ApplicationEvent.h"
 
 #include "Core/Timestep.h"
+#include "Layers/ImGuiLayer.h"
 
 int main(int argc, char** argv);
 
@@ -32,11 +33,11 @@ public:
 
     void PushLayer(Layer* layer);
     void PushOverlay(Layer* layer);
-
-    Window& GetWindow() { return *m_Window;}
-
+    ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer;}
+    
     void Close();
-
+    
+    Window& GetWindow() { return *m_Window;}
     static Application& Get() { return *s_Instance;}
 
     ApplicationCommandLineArgs GetCommandLineArgs() const { return m_CommandLineArgs;}
@@ -48,7 +49,7 @@ private:
 private:
     ApplicationCommandLineArgs m_CommandLineArgs;
     Scope<Window> m_Window;
-
+    ImGuiLayer* m_ImGuiLayer;
     bool m_Running = true;
     bool m_Minimized = false;
     LayerStack m_LayerStack;

@@ -1,6 +1,8 @@
 #include "Application.h"
 #include "Layers/TestLayer.h"
 
+#include <Renderer/Renderer.h>
+
 Application* Application::s_Instance = nullptr;
 
 Application::Application(const std::string& name, ApplicationCommandLineArgs args)
@@ -12,14 +14,18 @@ Application::Application(const std::string& name, ApplicationCommandLineArgs arg
         m_Window = CreateScope<Window>(WindowProps(name));
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
-        // render init
+        CE::Renderer::Init();
 
+#if CE_DEBUG
+        m_ImGuiLayer = new ImGuiLayer();
+        PushOverlay(m_ImGuiLayer);
+#endif        
         PushLayer(new TestLayer());
 
     }
 
 Application::~Application(){
-
+    CE::Renderer::Shutdown();
 }
 
 void Application::PushLayer(Layer* layer)
@@ -58,10 +64,17 @@ void Application::Run(){
         float time = (float)glfwGetTime();
         Timestep timestep = time - m_LastFrameTime;
         m_LastFrameTime = time;
-
+              
         if(!m_Minimized){
             for(Layer* layer : m_LayerStack)
                 layer->OnUpdate(timestep);
+
+            m_ImGuiLayer->Begin();
+
+                for(Layer* layer : m_LayerStack)
+                    layer->OnImGuiRender();
+
+            m_ImGuiLayer->End();
         }
 
         m_Window->OnUpdate();
@@ -82,6 +95,8 @@ bool Application::OnWindowResize(WindowResizeEvent& e){
     }
 
     m_Minimized = false;
+
+    CE::Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
 
     return false;
 }

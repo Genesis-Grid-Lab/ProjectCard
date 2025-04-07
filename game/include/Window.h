@@ -3,6 +3,11 @@
 #include "Core/Config.h"
 #include "Events/Event.h"
 
+namespace CE {
+
+    class GraphicsContext;
+}
+
 struct WindowProps{
 
     std::string m_Title;
@@ -43,6 +48,7 @@ private:
 
 private:
     GLFWwindow* m_Window;
+    Scope<CE::GraphicsContext> m_Context;
 
     struct WindowData{
         std::string Title;

@@ -22,6 +22,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/vendor/spdlog/include 
     ${CMAKE_SOURCE_DIR}/vendor/imgui
     ${CMAKE_SOURCE_DIR}/vendor/imgui/backends
+    ${CMAKE_SOURCE_DIR}/vendor/stb_image
 )
 
 
