@@ -8,7 +8,7 @@
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
 
-#include "Core/Timestep.h"
+#include <Timestep.h>
 #include "Layers/ImGuiLayer.h"
 
 int main(int argc, char** argv);

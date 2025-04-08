@@ -5,7 +5,7 @@ typedef unsigned int GLenum;
 
 namespace CE {
 
-	class Texture
+	class CE_API Texture
 	{
 	public:
 		virtual ~Texture() = default;
@@ -23,7 +23,7 @@ namespace CE {
 		virtual bool operator==(const Texture& other) const = 0;
 	};
 
-	class Texture2D : public Texture
+	class CE_API Texture2D : public Texture
 	{
 	public:
         Texture2D(uint32_t width, uint32_t height);

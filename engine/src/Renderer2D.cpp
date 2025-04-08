@@ -297,6 +297,17 @@ namespace CE {
 
 		DrawQuad(transform, texture, tilingFactor, tintColor);
 	}
+
+	void Renderer2D::DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID)
+	{
+		if (src.Texture)
+			DrawQuad(transform, src.Texture, src.TilingFactor, src.Color, entityID);
+			// CE_CORE_INFO("DARW");
+		else
+			DrawQuad(transform, src.Color, entityID);
+			// DrawQuad({0, 0} ,{100, 100}, src.Color);
+	}
+	
     void Renderer2D::ResetStats()
 	{
 		memset(&s_Data.Stats, 0, sizeof(Statistics));
