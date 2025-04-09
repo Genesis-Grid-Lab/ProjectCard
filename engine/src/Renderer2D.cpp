@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace CE {
+	unsigned int fsVAO, fsVBO;
 
     struct QuadVertex
 	{
@@ -30,7 +31,10 @@ namespace CE {
 
 		Ref<VertexArray> QuadVertexArray;
 		Ref<VertexBuffer> QuadVertexBuffer;
+		Ref<VertexArray> ScreenVertexArray;
+		Ref<VertexBuffer> ScreenVertexBuffer;
 		Ref<Shader> TextureShader;
+		Ref<Shader> ScreenShader;
 		Ref<Texture2D> WhiteTexture;
 
 		uint32_t QuadIndexCount = 0;
@@ -53,11 +57,11 @@ namespace CE {
 	};
 
     static Renderer2DData s_Data;
+	static Ref<VertexBuffer> ScreenVertexBuffer;
+	static Ref<VertexArray> ScreenVertexArray;
 
     void Renderer2D::Init()
-	{
-		
-
+	{			
 		s_Data.QuadVertexArray = CreateRef<VertexArray>();
 
 		s_Data.QuadVertexBuffer = CreateRef<VertexBuffer>(s_Data.MaxVertices * sizeof(QuadVertex));
@@ -101,17 +105,41 @@ namespace CE {
 		for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
 			samplers[i] = i;
 
-		s_Data.TextureShader = CreateRef<Shader>("Data/Shaders/Texture.vs", "Data/Shaders/Texture.fs");
-
+		s_Data.TextureShader = CreateRef<Shader>("Data/Shaders/Texture.glsl");
+		
 		// Set first texture slot to 0
 		s_Data.TextureSlots[0] = s_Data.WhiteTexture;
-
+		
 		s_Data.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
 		s_Data.QuadVertexPositions[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
 		s_Data.QuadVertexPositions[2] = {  0.5f,  0.5f, 0.0f, 1.0f };
 		s_Data.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
-
 		s_Data.CameraUniformBuffer = CreateRef<UniformBuffer>(sizeof(Renderer2DData::CameraData), 0);
+		s_Data.ScreenShader = CreateRef<Shader>("Data/Shaders/Screen.glsl");		
+		
+		ScreenVertexArray = CreateRef<VertexArray>();
+		
+		float quadVertices[] = {
+			// positions   // texCoords
+			-1.0f, -1.0f,  0.0f, 0.0f,
+			1.0f, -1.0f,  1.0f, 0.0f,
+			1.0f,  1.0f,  1.0f, 1.0f,
+			-1.0f,  1.0f,  0.0f, 1.0f
+		};
+		
+		uint32_t indices[] = { 0, 1, 2, 2, 3, 0 };			
+		
+		ScreenVertexBuffer = CreateRef<VertexBuffer>(quadVertices, sizeof(quadVertices));
+		ScreenVertexBuffer->SetLayout({
+			{ CE::ShaderDataType::Float2, "a_Position" },
+			{ CE::ShaderDataType::Float2, "a_TexCoord" }
+		});
+		
+		auto& ib = CreateRef<IndexBuffer>(indices, 6);
+		
+		ScreenVertexArray->AddVertexBuffer(ScreenVertexBuffer);
+		ScreenVertexArray->SetIndexBuffer(ib);
+		
 	}
 
     void Renderer2D::Shutdown(){
@@ -151,7 +179,7 @@ namespace CE {
 		for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
 			s_Data.TextureSlots[i]->Bind(i);
 		
-		s_Data.TextureShader->use();
+		s_Data.TextureShader->Bind();
 		RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
 		s_Data.Stats.DrawCalls++;
 	}
@@ -190,6 +218,26 @@ namespace CE {
 			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
 		DrawQuad(transform, texture, tilingFactor, tintColor);
+	}
+
+	void Renderer2D::DrawScreen(Ref<Framebuffer>& buffer){
+		// Bind default framebuffer (screen)		
+		glViewport(0, 0, buffer->GetSpecification().Width, buffer->GetSpecification().Height);	
+	
+		// Bind blit shader
+		s_Data.ScreenShader->Bind();
+	
+		// Bind source texture
+		// glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, buffer->GetColorAttachmentRendererID());
+		s_Data.ScreenShader->SetInt("screenTexture", 0);
+	
+		// Draw fullscreen quad		
+	
+		ScreenVertexArray->Bind();
+		RenderCommand::DrawIndexed(ScreenVertexArray);
+		s_Data.QuadVertexArray->Bind();
+		// s_Data.ScreenVertexArray->Unbind();		
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID)

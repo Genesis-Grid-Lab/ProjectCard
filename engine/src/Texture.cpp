@@ -23,6 +23,14 @@ namespace CE {
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
 
+	Texture2D::Texture2D(Ref<Framebuffer>& buffer){
+		CE_CORE_INFO("Creating Texture2D from Framebuffer");
+		m_RendererID = buffer->GetColorAttachmentRendererID();
+		m_Width = buffer->GetSpecification().Width;
+		m_Height = buffer->GetSpecification().Height;
+		m_IsLoaded = true;
+	}
+
 	Texture2D::Texture2D(const std::string& path)
 		: m_Path(path)
 	{
@@ -92,6 +100,7 @@ namespace CE {
 
 	void Texture2D::Bind(uint32_t slot) const
 	{		
+		CE_CORE_ASSERT(m_RendererID != 0, "Texture RendererID is 0!");
 		glBindTextureUnit(slot, m_RendererID);
 	}
 }

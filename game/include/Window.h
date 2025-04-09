@@ -3,6 +3,7 @@
 #include "Core/Config.h"
 #include "Events/Event.h"
 
+using namespace GA;
 namespace CE {
 
     class GraphicsContext;

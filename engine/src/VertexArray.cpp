@@ -124,7 +124,6 @@ namespace CE {
 	void VertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
 	{
 		
-
 		glBindVertexArray(m_RendererID);
 		indexBuffer->Bind();
 

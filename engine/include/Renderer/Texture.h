@@ -1,5 +1,6 @@
 #pragma once
 #include "Config.h"
+#include "Framebuffer.h"
 
 typedef unsigned int GLenum;
 
@@ -28,6 +29,7 @@ namespace CE {
 	public:
         Texture2D(uint32_t width, uint32_t height);
         Texture2D(const std::string& path);
+		Texture2D(Ref<Framebuffer>& buffer);
         virtual ~Texture2D();
 
         virtual uint32_t GetWidth() const override { return m_Width;  }

@@ -8,7 +8,9 @@
 
 namespace CE {
 
-    Scene::Scene(){}
+    Scene::Scene(){
+		m_Cam = Camera(0.0f, 1600.0f, 900.0f, 0.0f);
+	}
     Scene::~Scene(){}
 
     template<typename Component>
@@ -84,15 +86,23 @@ namespace CE {
 
     void Scene::OnUpdateRuntime(Timestep ts){
         
-
+		Renderer2D::BeginCamera(m_Cam);
 		auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 		for (auto entity : group)
 		{
 			auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);                
 			Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
 		}
+
+		Renderer2D::EndCamera();
 		
     }
+
+	void Scene::DrawScreen(Ref<Framebuffer>& buffer){
+		Renderer2D::BeginCamera(m_Cam);
+		Renderer2D::DrawScreen(buffer);
+		// Renderer2D::EndCamera();
+	}
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height)
 	{
