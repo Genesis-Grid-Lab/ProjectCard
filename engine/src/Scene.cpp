@@ -8,8 +8,11 @@
 
 namespace CE {
 
-    Scene::Scene(){
-		m_Cam = Camera(0.0f, 1600.0f, 900.0f, 0.0f);
+    Scene::Scene(uint32_t width, uint32_t height){
+		m_Cam = Camera(0.0f, width, height, 0.0f);
+
+		m_ViewportWidth = width;
+		m_ViewportHeight = height;
 	}
     Scene::~Scene(){}
 
@@ -37,10 +40,7 @@ namespace CE {
 
 	Ref<Scene> Scene::Copy(Ref<Scene> other)
 	{
-		Ref<Scene> newScene = CreateRef<Scene>();
-
-		newScene->m_ViewportWidth = other->m_ViewportWidth;
-		newScene->m_ViewportHeight = other->m_ViewportHeight;
+		Ref<Scene> newScene = CreateRef<Scene>(other->m_ViewportWidth, other->m_ViewportHeight);
 
 		auto& srcSceneRegistry = other->m_Registry;
 		auto& dstSceneRegistry = newScene->m_Registry;
@@ -109,14 +109,7 @@ namespace CE {
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
 
-		// Resize our non-FixedAspectRatio cameras
-		// auto view = m_Registry.view<CameraComponent>();
-		// for (auto entity : view)
-		// {
-		// 	auto& cameraComponent = view.get<CameraComponent>(entity);
-		// 	if (!cameraComponent.FixedAspectRatio)
-		// 		cameraComponent.Camera.SetViewportSize(width, height);
-		// }
+		// m_Cam.SetProjection(0.0f, width, height, 0.0f);
 
 	}
 

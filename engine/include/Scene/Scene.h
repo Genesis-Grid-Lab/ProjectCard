@@ -13,7 +13,7 @@ namespace CE {
 
     class CE_API Scene{
     public:
-        Scene();
+        Scene(uint32_t width, uint32_t height);
         ~Scene();
 
         static Ref<Scene> Copy(Ref<Scene> other);
@@ -29,7 +29,9 @@ namespace CE {
         void DuplicateEntity(Entity entity);
 
         Camera& GetCam() { return m_Cam;}
-
+        // Ref<Framebuffre>& GetBuffer() { return m_Framebuffer;}
+        //temp
+        Ref<Framebuffer> m_Framebuffer;
     private:
         template<typename T>
         void CE_API OnComponentAdded(Entity entity, T& component);
@@ -38,7 +40,6 @@ namespace CE {
         Ref<CE::Texture2D> m_Screen;
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
         Camera m_Cam;
-
         friend class Entity;
         // friend class SceneSerializer;    
     };

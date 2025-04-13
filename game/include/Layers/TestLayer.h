@@ -17,14 +17,12 @@ public:
     virtual void OnAttach() override{    
         CE::FramebufferSpecification fbSpec;
 		fbSpec.Attachments = { CE::FramebufferTextureFormat::RGBA8, CE::FramebufferTextureFormat::RED_INTEGER, CE::FramebufferTextureFormat::Depth };
-		// fbSpec.Attachments = { CE::FramebufferTextureFormat::RGBA8, CE::FramebufferTextureFormat::RGBA8, CE::FramebufferTextureFormat::Depth };
-		fbSpec.Width = 1600;
-		fbSpec.Height = 900;
+		fbSpec.Width = SCREEN_WIDTH;
+		fbSpec.Height = SCREEN_HEIGHT;
 		m_Framebuffer = GA::CreateRef<CE::Framebuffer>(fbSpec);
 
         m_Tex = CreateRef<CE::Texture2D>("Resources/Textures/Checkerboard.png");
-        m_Scene = CreateRef<CE::Scene>();  
-        m_ScreenTex = GA::CreateRef<CE::Texture2D>(m_Framebuffer);          
+        m_Scene = CreateRef<CE::Scene>(SCREEN_WIDTH, SCREEN_HEIGHT);        
         
         //entity        
         
@@ -60,7 +58,7 @@ public:
 
         ImGui::Begin("View");
         ImTextureID textureID = m_Framebuffer->GetColorAttachmentRendererID();
-        ImGui::Image(textureID, ImVec2{1600, 900}, ImVec2{0, 1}, ImVec2{1,0});
+        ImGui::Image(textureID, ImVec2{SCREEN_WIDTH, SCREEN_HEIGHT}, ImVec2{0, 1}, ImVec2{1,0});
         ImGui::End();
     }
 
@@ -80,10 +78,10 @@ public:
         auto my = Input::GetMouseY();
         auto mx = Input::GetMouseX();
 
-        my = 900 - my;
+        my = SCREEN_HEIGHT - my;
         // mx = 1600 - mx;
         
-        if(Input::GetMouseX() >= 0 && Input::GetMouseY() >= 0 && Input::GetMouseX() < 1600 && Input::GetMouseY() < 900){            
+        if(Input::GetMouseX() >= 0 && Input::GetMouseY() >= 0 && Input::GetMouseX() < SCREEN_WIDTH && Input::GetMouseY() < SCREEN_HEIGHT){            
             int pixelData = m_Framebuffer->ReadPixel(1, mx, my);
             CE_INFO("Pixel {0}",pixelData);
             CE_INFO("mx: {0}, my: {1}" ,Input::GetMouseX(), Input::GetMouseY() );
@@ -95,7 +93,6 @@ public:
         CE::RenderCommand::Clear();
         
         m_Scene->DrawScreen(m_Framebuffer);        
-        // CE::Renderer2D::DrawScreen(m_Framebuffer);
     }
     void OnEvent(Event& e) override{
         EventDispatcher dispatcher(e);
@@ -104,8 +101,6 @@ public:
 
     bool OnResize(WindowResizeEvent& e){
         m_Framebuffer->Resize(e.GetWidth(), e.GetHeight());
-        // m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
-        // m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         m_Scene->OnViewportResize(e.GetWidth(), e.GetHeight());
 
         return false;
@@ -113,7 +108,6 @@ public:
 
 private:           
     Ref<CE::Texture2D> m_Tex;
-    Ref<CE::Texture2D> m_ScreenTex;    
     Ref<CE::Scene> m_Scene;
     CE::Entity m_HoveredEntity;
     Ref<CE::Framebuffer> m_Framebuffer;    
