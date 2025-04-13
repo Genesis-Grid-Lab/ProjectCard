@@ -90,9 +90,29 @@ namespace CE {
 		auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 		for (auto entity : group)
 		{
-			auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);                
+			auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 			Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
 		}
+
+		// ViewEntity<Entity, SpriteRendererComponent>([this] (auto entity, auto& comp){
+
+		// 	auto& transform = entity.template GetComponent<TransformComponent>();
+		// 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
+		// });
+
+		ViewEntity<Entity, UIElement>([this] (auto& entity, auto& comp){
+
+			auto& transform = entity.template GetComponent<TransformComponent>();			
+			Renderer2D::DrawQuad(transform.GetTransform(), comp.Texture, 1.0f, {1.0f, 1.0f, 1.0f, 1.0f}, (int)entity);
+		});
+
+		// auto group1 = m_Registry.group<TransformComponent>(entt::get<UIElement>);
+		// for(auto entity : group1){
+
+		// 	auto [transform, ui] = group1.get<TransformComponent, UIElement>(entity);
+		// 	Renderer2D::DrawQuad({transform.Translation.x, transform.Translation.y}, 
+		// 							{transform.Scale.x, transform.Scale.y}, ui.Texture);
+		// }
 
 		Renderer2D::EndCamera();
 		
@@ -141,6 +161,11 @@ namespace CE {
 
 	template<>
 	void CE_API Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
+	{
+	}
+
+	template<>
+	void CE_API Scene::OnComponentAdded<UIElement>(Entity entity, UIElement& component)
 	{
 	}
 

@@ -30,6 +30,13 @@ namespace CE {
 			: Tag(tag) {}
 	};
 
+	struct UIElement{		
+		Ref<Texture2D> Texture;
+
+		UIElement() = default;
+		UIElement(const UIElement&) = default;		
+	};
+
 	struct TransformComponent
 	{
 		glm::vec3 Translation = { 0.0f, 0.0f, 0.0f };
@@ -63,13 +70,4 @@ namespace CE {
 			: Color(color) {}
 	};
 
-    // struct CE_API CameraComponent
-	// {
-	// 	CE::MainCamera Camera;
-	// 	bool Primary = true; // TODO: think about moving to Scene
-	// 	bool FixedAspectRatio = false;
-
-	// 	CameraComponent() = default;
-	// 	CameraComponent(const CameraComponent&) = default;
-	// };
 }

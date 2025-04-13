@@ -25,6 +25,11 @@ public:
         m_Scene = CreateRef<CE::Scene>(SCREEN_WIDTH, SCREEN_HEIGHT);        
         
         //entity        
+        auto& button = m_Scene->CreateEntity("Button");
+        button.AddComponent<CE::UIElement>().Texture = m_Tex;
+        auto& tcb = button.GetComponent<CE::TransformComponent>();
+        tcb.Scale = {50, 50, 1};
+        tcb.Translation = { 720 / 2, 1000, 1};
         
         auto& square = m_Scene->CreateEntity("Green Square");
         auto& sc = square.AddComponent<CE::SpriteRendererComponent>(glm::vec4{0.0f, 1.0f, 0.0f, 1.0f});
@@ -33,6 +38,17 @@ public:
         tc.Scale = {100, 100, 1};
         
         sc.Texture = m_Tex;
+
+        auto& squareRed = m_Scene->CreateEntity("Red Square");
+        auto& scr = squareRed.AddComponent<CE::SpriteRendererComponent>(glm::vec4{1.0f, 0.0f, 0.0f, 1.0f});
+        auto& tcr = squareRed.GetComponent<CE::TransformComponent>();
+        tcr.Translation = {100, 500, 0};
+        tcr.Scale = {100, 100, 1};
+        
+        scr.Texture = m_Tex;
+
+
+        auto& dummy = m_Scene->CreateEntity("dummt");
                 
     }
     virtual void OnDetach() override{
@@ -84,7 +100,7 @@ public:
         if(Input::GetMouseX() >= 0 && Input::GetMouseY() >= 0 && Input::GetMouseX() < SCREEN_WIDTH && Input::GetMouseY() < SCREEN_HEIGHT){            
             int pixelData = m_Framebuffer->ReadPixel(1, mx, my);
             CE_INFO("Pixel {0}",pixelData);
-            CE_INFO("mx: {0}, my: {1}" ,Input::GetMouseX(), Input::GetMouseY() );
+            // CE_INFO("mx: {0}, my: {1}" ,Input::GetMouseX(), Input::GetMouseY() );
             m_HoveredEntity = pixelData == -1 ? CE::Entity() : CE::Entity((entt::entity)pixelData, m_Scene.get());            
         }
         
@@ -92,7 +108,11 @@ public:
         CE::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
         CE::RenderCommand::Clear();
         
-        m_Scene->DrawScreen(m_Framebuffer);        
+        m_Scene->DrawScreen(m_Framebuffer);       
+        if(Input::IsMouseButtonPressed(0) && m_HoveredEntity){
+            auto& tc = m_HoveredEntity.GetComponent<CE::TransformComponent>();
+            tc.Translation = {Input::GetMouseX(), Input::GetMouseY(), 1.0f};
+        } 
     }
     void OnEvent(Event& e) override{
         EventDispatcher dispatcher(e);
