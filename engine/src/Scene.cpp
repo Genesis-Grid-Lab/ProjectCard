@@ -113,10 +113,6 @@ namespace CE {
 		// 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
 		// });
 
-		Renderer2D::DrawQuad({200, 200}, {50, 50}, {0,0,1, 1});
-
-
-
 		Renderer2D::EndCamera();
 		
     }

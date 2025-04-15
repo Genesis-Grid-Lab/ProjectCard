@@ -1,6 +1,6 @@
 #include "Application.h"
-#include "Layers/TestLayer.h"
-
+// #include "Layers/TestLayer.h"
+#include "GameLayer.h"
 #include <Renderer/Renderer.h>
 
 Application* Application::s_Instance = nullptr;
@@ -20,7 +20,8 @@ Application::Application(const std::string& name, ApplicationCommandLineArgs arg
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
 #endif        
-        PushLayer(new TestLayer());
+        // PushLayer(new TestLayer());
+        PushLayer(new GameLayer());
 
     }
 
