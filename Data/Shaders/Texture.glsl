@@ -94,7 +94,10 @@ void main()
 		case 30: texColor *= texture(u_Textures[30], Input.TexCoord * Input.TilingFactor); break;
 		case 31: texColor *= texture(u_Textures[31], Input.TexCoord * Input.TilingFactor); break;
 	}
+
+	vec4 debugColor = vec4(v_TexIndex / 32.0, 0.0, 1.0, 1.0);
 	color = texColor;
+	// color = debugColor;
 
 	color2 = v_EntityID;
 	// color2 = 50;

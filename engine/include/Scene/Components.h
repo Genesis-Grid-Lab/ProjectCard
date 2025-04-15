@@ -30,13 +30,6 @@ namespace CE {
 			: Tag(tag) {}
 	};
 
-	struct UIElement{		
-		Ref<Texture2D> Texture;
-
-		UIElement() = default;
-		UIElement(const UIElement&) = default;		
-	};
-
 	struct TransformComponent
 	{
 		glm::vec3 Translation = { 0.0f, 0.0f, 0.0f };
@@ -68,6 +61,23 @@ namespace CE {
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {}
+	};
+
+
+
+	///UI
+	struct UIElement{	
+		Ref<Texture2D> Texture;
+		glm::vec4 Color;
+
+		UIElement() = default;
+		UIElement(const UIElement&) = default;		
+	};
+
+	struct ButtonComponent : public UIElement{
+		std::function<void()> OnClick = nullptr;
+		bool Hovered = false;
+		bool ClickedLastFrame = false;
 	};
 
 }

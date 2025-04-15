@@ -35,7 +35,8 @@ namespace CE {
 
         void OnUpdateRuntime(Timestep ts);  
         void DrawScreen(Ref<Framebuffer>& buffer);      
-        void OnViewportResize(uint32_t width, uint32_t height);        
+        void OnViewportResize(uint32_t width, uint32_t height);   
+        void OnMouseInput(float mouseX, float mouseY, bool mousePressed);     
 
         void DuplicateEntity(Entity entity);
 

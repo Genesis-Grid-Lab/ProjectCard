@@ -87,6 +87,19 @@ namespace CE {
     void Scene::OnUpdateRuntime(Timestep ts){
         
 		Renderer2D::BeginCamera(m_Cam);
+		// ViewEntity<Entity, UIElement>([this] (auto& entity, auto& comp){
+
+		// 	auto& transform = entity.template GetComponent<TransformComponent>();			
+		// 	Renderer2D::DrawUI(transform.Translation, transform.Scale, comp);
+		// });
+
+		auto group1 = m_Registry.group<ButtonComponent>(entt::get<TransformComponent>);
+		for(auto entity : group1){
+
+			auto [transform, ui] = group1.get<TransformComponent, ButtonComponent>(entity);
+			Renderer2D::DrawUI(transform.GetTransform(), ui, (int)entity);
+		}
+
 		auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 		for (auto entity : group)
 		{
@@ -100,19 +113,9 @@ namespace CE {
 		// 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
 		// });
 
-		ViewEntity<Entity, UIElement>([this] (auto& entity, auto& comp){
+		Renderer2D::DrawQuad({200, 200}, {50, 50}, {0,0,1, 1});
 
-			auto& transform = entity.template GetComponent<TransformComponent>();			
-			Renderer2D::DrawQuad(transform.GetTransform(), comp.Texture, 1.0f, {1.0f, 1.0f, 1.0f, 1.0f}, (int)entity);
-		});
 
-		// auto group1 = m_Registry.group<TransformComponent>(entt::get<UIElement>);
-		// for(auto entity : group1){
-
-		// 	auto [transform, ui] = group1.get<TransformComponent, UIElement>(entity);
-		// 	Renderer2D::DrawQuad({transform.Translation.x, transform.Translation.y}, 
-		// 							{transform.Scale.x, transform.Scale.y}, ui.Texture);
-		// }
 
 		Renderer2D::EndCamera();
 		
@@ -131,6 +134,37 @@ namespace CE {
 
 		// m_Cam.SetProjection(0.0f, width, height, 0.0f);
 
+	}
+
+	void Scene::OnMouseInput(float mouseX, float mouseY, bool mousePressed){
+		auto group1 = m_Registry.group<ButtonComponent>(entt::get<TransformComponent>);
+		for(auto entity : group1){
+
+			auto [transform, button] = group1.get<TransformComponent, ButtonComponent>(entity);
+
+			bool hovered = mouseX >= transform.Translation.x && mouseX <= transform.Translation.x + transform.Scale.x &&
+		               mouseY >= transform.Translation.y && mouseY <= transform.Translation.y + transform.Scale.y;
+
+			button.Hovered = hovered;
+
+			if (hovered && mousePressed && !button.ClickedLastFrame) {
+				if (button.OnClick)
+					button.OnClick();if (hovered && mousePressed && !button.ClickedLastFrame) {
+						if (button.OnClick)
+							button.OnClick();
+
+						button.ClickedLastFrame = true;
+					}
+					else if (!mousePressed) {
+						button.ClickedLastFrame = false;
+					}
+	
+					button.ClickedLastFrame = true;
+			}
+			else if (!mousePressed) {
+				button.ClickedLastFrame = false;
+			}
+		}
 	}
 
 	void Scene::DuplicateEntity(Entity entity)
@@ -167,6 +201,12 @@ namespace CE {
 	template<>
 	void CE_API Scene::OnComponentAdded<UIElement>(Entity entity, UIElement& component)
 	{
+	}
+
+	template<>
+	void CE_API Scene::OnComponentAdded<ButtonComponent>(Entity entity, ButtonComponent& component)
+	{
+
 	}
 
 	template<>

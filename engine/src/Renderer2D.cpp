@@ -1,5 +1,5 @@
 #include "Renderer/Renderer2D.h"
-
+#include "Config.h"
 #include "Renderer/VertexArray.h"
 #include "Renderer/Shader.h"
 #include "Renderer/RenderCommand.h"
@@ -106,7 +106,6 @@ namespace CE {
 			samplers[i] = i;
 
 		s_Data.TextureShader = CreateRef<Shader>("Data/Shaders/Texture.glsl");
-		
 		// Set first texture slot to 0
 		s_Data.TextureSlots[0] = s_Data.WhiteTexture;
 		
@@ -114,7 +113,7 @@ namespace CE {
 		s_Data.QuadVertexPositions[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
 		s_Data.QuadVertexPositions[2] = {  0.5f,  0.5f, 0.0f, 1.0f };
 		s_Data.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
-		s_Data.CameraUniformBuffer = CreateRef<UniformBuffer>(sizeof(Renderer2DData::CameraData), 0);
+		s_Data.CameraUniformBuffer = CreateRef<UniformBuffer>(sizeof(Renderer2DData::CameraData), 0);		
 		s_Data.ScreenShader = CreateRef<Shader>("Data/Shaders/Screen.glsl");		
 		
 		ScreenVertexArray = CreateRef<VertexArray>();
@@ -171,6 +170,11 @@ namespace CE {
 	{
 		if (s_Data.QuadIndexCount == 0)
 			return; // Nothing to draw
+
+		std::sort(&s_Data.QuadVertexBufferPtr[0], &s_Data.QuadVertexBufferPtr[s_Data.MaxVertices],
+			[](const QuadVertex& a, const QuadVertex& b){
+				return a.Position.z < b.Position.z;
+			});
 
 		uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
 		s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
@@ -274,10 +278,10 @@ namespace CE {
 
 		constexpr size_t quadVertexCount = 4;
 		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
-
+		
 		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
 			NextBatch();
-
+		
 		float textureIndex = 0.0f;
 		for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
 		{
@@ -295,7 +299,7 @@ namespace CE {
 
 			textureIndex = (float)s_Data.TextureSlotIndex;
 			s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
-			s_Data.TextureSlotIndex++;
+			s_Data.TextureSlotIndex++;			
 		}
 
 		for (size_t i = 0; i < quadVertexCount; i++)
@@ -354,6 +358,13 @@ namespace CE {
 		else
 			DrawQuad(transform, src.Color, entityID);
 			// DrawQuad({0, 0} ,{100, 100}, src.Color);
+	}
+
+	void Renderer2D::DrawUI(const glm::mat4& transform, UIElement& src, int entityID){
+		if(src.Texture)
+			DrawQuad(transform, src.Texture, 1.0f, {1, 1, 1, 1}, entityID);
+		else
+			DrawQuad(transform, src.Color, entityID);
 	}
 	
     void Renderer2D::ResetStats()

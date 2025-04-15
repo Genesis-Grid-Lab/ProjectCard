@@ -4,6 +4,7 @@
 #include "Core/Layer.h"
 #include "Core/Input.h"
 #include "CardEngine.h"
+#include "ImGui/ImGuiInputs.h"
 #include <glm/glm.hpp>
 #include <imgui.h>
 
@@ -22,14 +23,21 @@ public:
 		m_Framebuffer = GA::CreateRef<CE::Framebuffer>(fbSpec);
 
         m_Tex = CreateRef<CE::Texture2D>("Resources/Textures/Checkerboard.png");
+        m_Tex2 = CreateRef<CE::Texture2D>("Resources/Textures/board.png");
         m_Scene = CreateRef<CE::Scene>(SCREEN_WIDTH, SCREEN_HEIGHT);        
         
         //entity        
         auto& button = m_Scene->CreateEntity("Button");
-        button.AddComponent<CE::UIElement>().Texture = m_Tex;
-        auto& tcb = button.GetComponent<CE::TransformComponent>();
-        tcb.Scale = {50, 50, 1};
-        tcb.Translation = { 720 / 2, 1000, 1};
+        auto& utc = button.GetComponent<CE::TransformComponent>();
+        auto& uic = button.AddComponent<CE::ButtonComponent>();
+
+        utc.Translation = { 720 / 2, 1000, 0};
+        utc.Scale = {50, 50, 1};
+        uic.Texture = m_Tex;
+
+        uic.OnClick = []() {
+            CE_INFO("CLISK");
+        };
         
         auto& square = m_Scene->CreateEntity("Green Square");
         auto& sc = square.AddComponent<CE::SpriteRendererComponent>(glm::vec4{0.0f, 1.0f, 0.0f, 1.0f});
@@ -38,14 +46,14 @@ public:
         tc.Scale = {100, 100, 1};
         
         sc.Texture = m_Tex;
-
+        
         auto& squareRed = m_Scene->CreateEntity("Red Square");
         auto& scr = squareRed.AddComponent<CE::SpriteRendererComponent>(glm::vec4{1.0f, 0.0f, 0.0f, 1.0f});
         auto& tcr = squareRed.GetComponent<CE::TransformComponent>();
         tcr.Translation = {100, 500, 0};
-        tcr.Scale = {100, 100, 1};
+        tcr.Scale = {100, 100, 0};
         
-        scr.Texture = m_Tex;
+        scr.Texture = m_Tex2;        
 
 
         auto& dummy = m_Scene->CreateEntity("dummt");
@@ -58,7 +66,7 @@ public:
     void OnImGuiRender() override{
 
         ImGui::Begin("Stats");
-
+        
 		std::string name = "None";
         if (m_HoveredEntity)
 			name = m_HoveredEntity.GetComponent<CE::TagComponent>().Tag;
@@ -70,7 +78,23 @@ public:
 		ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
 		ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
 
+        int count = 0;
+
+        m_Scene->ViewEntity<CE::Entity, CE::TransformComponent>([this, &count] (auto entity, auto& comp){            
+
+            std::string trans = "Translation" + std::to_string(count);
+            std::string rot = "Rotation" + std::to_string(count);
+            std::string scal = "Scale" + std::to_string(count);
+            InputVec3(trans.c_str(), &comp.Translation);
+            InputVec3(rot.c_str(), &comp.Rotation);
+            InputVec3(scal.c_str(), &comp.Scale);
+
+            count++;
+        });
+
+        
 		ImGui::End();
+        
 
         ImGui::Begin("View");
         ImTextureID textureID = m_Framebuffer->GetColorAttachmentRendererID();
@@ -99,7 +123,7 @@ public:
         
         if(Input::GetMouseX() >= 0 && Input::GetMouseY() >= 0 && Input::GetMouseX() < SCREEN_WIDTH && Input::GetMouseY() < SCREEN_HEIGHT){            
             int pixelData = m_Framebuffer->ReadPixel(1, mx, my);
-            CE_INFO("Pixel {0}",pixelData);
+            // CE_INFO("Pixel {0}",pixelData);
             // CE_INFO("mx: {0}, my: {1}" ,Input::GetMouseX(), Input::GetMouseY() );
             m_HoveredEntity = pixelData == -1 ? CE::Entity() : CE::Entity((entt::entity)pixelData, m_Scene.get());            
         }
@@ -111,8 +135,10 @@ public:
         m_Scene->DrawScreen(m_Framebuffer);       
         if(Input::IsMouseButtonPressed(0) && m_HoveredEntity){
             auto& tc = m_HoveredEntity.GetComponent<CE::TransformComponent>();
-            tc.Translation = {Input::GetMouseX(), Input::GetMouseY(), 1.0f};
+            tc.Translation = {Input::GetMouseX(), Input::GetMouseY(), tc.Translation.z};
         } 
+
+        m_Scene->OnMouseInput(Input::GetMouseX(), Input::GetMouseY(), Input::IsMouseButtonPressed(0));
     }
     void OnEvent(Event& e) override{
         EventDispatcher dispatcher(e);
@@ -128,7 +154,8 @@ public:
 
 private:           
     Ref<CE::Texture2D> m_Tex;
+    Ref<CE::Texture2D> m_Tex2;
     Ref<CE::Scene> m_Scene;
-    CE::Entity m_HoveredEntity;
+    CE::Entity m_HoveredEntity;    
     Ref<CE::Framebuffer> m_Framebuffer;    
 };
