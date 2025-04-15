@@ -87,11 +87,11 @@ namespace CE {
     void Scene::OnUpdateRuntime(Timestep ts){
         
 		Renderer2D::BeginCamera(m_Cam);
-		// ViewEntity<Entity, UIElement>([this] (auto& entity, auto& comp){
+		ViewEntity<Entity, UIElement>([this] (auto& entity, auto& comp){
 
-		// 	auto& transform = entity.template GetComponent<TransformComponent>();			
-		// 	Renderer2D::DrawUI(transform.Translation, transform.Scale, comp);
-		// });
+			auto& transform = entity.template GetComponent<TransformComponent>();			
+			Renderer2D::DrawUI(transform.GetTransform(), comp);
+		});
 
 		auto group1 = m_Registry.group<ButtonComponent>(entt::get<TransformComponent>);
 		for(auto entity : group1){

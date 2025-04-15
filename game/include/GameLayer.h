@@ -5,6 +5,7 @@
 #include "Core/Input.h"
 #include "Events/ApplicationEvent.h"
 #include "Config.h"
+#include "Game/Card.h"
 
 class GameLayer : public Layer {
 public:
@@ -15,6 +16,8 @@ public:
     void OnDetach() override;
     void OnImGuiRender() override;
 
+    void CreateUI();
+
     void OnUpdate(Timestep ts) override;
     void OnEvent(Event& e) override;
 
@@ -24,4 +27,9 @@ private:
     GA::Ref<CE::Scene> m_Scene;
     CE::Entity m_HoveredEntity;
     GA::Ref<CE::Framebuffer> m_Framebuffer;
+    GA::Ref<CE::Texture2D> BackTex;
+    GA::Ref<CE::Texture2D> AI1Tex;
+    GA::Ref<CE::Texture2D> AI2Tex;
+    GA::Ref<CE::Texture2D> AI3Tex;
+    // Card* Test;
 };

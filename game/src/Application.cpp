@@ -11,7 +11,7 @@ Application::Application(const std::string& name, ApplicationCommandLineArgs arg
         CE_CORE_ASSERT(!s_Instance, "Application already exists!");
 
         s_Instance = this;
-        m_Window = CreateScope<Window>(WindowProps(name, SCREEN_WIDTH, SCREEN_HEIGHT));
+        m_Window = GA::CreateScope<Window>(WindowProps(name, SCREEN_WIDTH, SCREEN_HEIGHT));
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         CE::Renderer::Init();

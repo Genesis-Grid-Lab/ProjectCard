@@ -171,10 +171,10 @@ namespace CE {
 		if (s_Data.QuadIndexCount == 0)
 			return; // Nothing to draw
 
-		std::sort(&s_Data.QuadVertexBufferPtr[0], &s_Data.QuadVertexBufferPtr[s_Data.MaxVertices],
-			[](const QuadVertex& a, const QuadVertex& b){
-				return a.Position.z < b.Position.z;
-			});
+		// std::sort(&s_Data.QuadVertexBufferPtr[0], &s_Data.QuadVertexBufferPtr[s_Data.MaxVertices],
+		// 	[](const QuadVertex& a, const QuadVertex& b){
+		// 		return a.Position.z < b.Position.z;
+		// 	});
 
 		uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
 		s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
