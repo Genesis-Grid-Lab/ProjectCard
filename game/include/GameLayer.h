@@ -16,6 +16,8 @@ public:
     void OnDetach() override;
     void OnImGuiRender() override;
 
+    void StartGame();
+
     void CreateUI();
 
     void OnUpdate(Timestep ts) override;
@@ -26,6 +28,11 @@ public:
 private:
     GA::Ref<CE::Scene> m_Scene;
     CE::Entity m_HoveredEntity;
+    glm::vec3 OldPos;
+    Deck *mCard;
+    Table *mTable;
+    Table *mTable1;
+    Hand *mHand;
     GA::Ref<CE::Framebuffer> m_Framebuffer;
     GA::Ref<CE::Texture2D> BackTex;
     GA::Ref<CE::Texture2D> AI1Tex;

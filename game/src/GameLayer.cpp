@@ -2,11 +2,13 @@
 #include "ImGui/ImGuiInputs.h"
 
 GameLayer::GameLayer(){
-
+    
 }
 
 GameLayer::~GameLayer(){
-
+    delete mCard;
+    delete mTable;
+    delete mHand;
 }
 
 void GameLayer::OnAttach(){
@@ -16,11 +18,25 @@ void GameLayer::OnAttach(){
     fbSpec.Height = SCREEN_HEIGHT;
     m_Framebuffer = GA::CreateRef<CE::Framebuffer>(fbSpec);
     m_Scene = GA::CreateRef<CE::Scene>(SCREEN_WIDTH, SCREEN_HEIGHT);
-
+    
     CreateUI();
+    
+    mCard = new Deck(m_Scene);
+    glm::vec2 tablePos = {SCREEN_WIDTH / 2, 200};
+    glm::vec2 table1Pos = {tablePos.x, tablePos.y + 150};
+    glm::vec2 tableSize = {Card_width * 6 + 30, Card_height};
+    mTable = new Table(m_Scene, tablePos, tableSize);
+    mTable1 = new Table(m_Scene, table1Pos, tableSize);
 
-    // Test = new Card(m_Scene);
-    auto test = Card(m_Scene);
+    glm::vec2 handPos = {SCREEN_WIDTH / 2, 1000};
+    glm::vec2 handSize = {Card_width * 4 + 10, Card_height};
+    mHand = new Hand(m_Scene, handPos, handSize);
+
+    // auto& tc = mCard->GetID().GetComponent<TransformComponent>();
+    // tc.Translation = { 720 / 2, 1280 / 2, 1};
+    // tc.Scale = { 80, 120, 1};
+
+    StartGame();
     
 }
 
@@ -107,11 +123,10 @@ void GameLayer::CreateUI(){
 }
 
 void GameLayer::OnDetach(){
-    // delete Test;
+    
 }
 
 void GameLayer::OnUpdate(Timestep ts){
-
     // Render
     CE::Renderer2D::ResetStats();
     m_Framebuffer->Bind();
@@ -140,22 +155,76 @@ void GameLayer::OnUpdate(Timestep ts){
     CE::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
     CE::RenderCommand::Clear();
     
-    m_Scene->DrawScreen(m_Framebuffer);       
-    if(Input::IsMouseButtonPressed(0) && m_HoveredEntity){
-        auto& tc = m_HoveredEntity.GetComponent<CE::TransformComponent>();
-        tc.Translation = {Input::GetMouseX(), Input::GetMouseY(), tc.Translation.z};
-    } 
+    m_Scene->DrawScreen(m_Framebuffer);   
+    for(auto card : mCard->GetCards()){
+        auto& tc = card->GetID().GetComponent<CE::TransformComponent>();
+        if(m_HoveredEntity == card->GetID() && Input::IsMouseButtonPressed(0) && !card->OnTable ){            
+            tc.Translation = {Input::GetMouseX(), Input::GetMouseY(), 4};
+            card->Selected = true;       
+        }
+        
+        // Releasing
+        if (card->Selected && !Input::IsMouseButtonPressed(0)) {
+            card->Selected = false;
+
+            bool dropped = false;
+
+            // Try table spots
+            for (int i = 0; i < 6; ++i) {
+                auto spot = mTable->GetSpot(i);
+                if (spot->IsInside(tc.Translation)) {
+                    spot->PushCard(card);
+                    dropped = true;
+                    break;
+                }
+            }
+
+            for (int i = 0; i < 6; ++i) {
+                auto spot = mTable1->GetSpot(i);
+                if (spot->IsInside(tc.Translation)) {
+                    spot->PushCard(card);
+                    dropped = true;
+                    break;
+                }
+            }
+
+            // Return to hand if not dropped
+            if (!dropped) {
+                tc.Translation = card->LastPos;
+                // tc.Translation = glm::mix(tc.Translation, card->LastPos, 0.5f);
+            }
+        }
+        auto& sr = card->GetID().GetComponent<SpriteRendererComponent>();
+        sr.Color = card->Selected ? glm::vec4(1, 1, 1, 0.8f) : glm::vec4(1, 1, 1, 1.0f);
+        // tc.Translation = glm::mix(tc.Translation, card->OriginalPosition, 0.2f);
+    }
 
     m_Scene->OnMouseInput(Input::GetMouseX(), Input::GetMouseY(), Input::IsMouseButtonPressed(0));
 
+}
+
+void GameLayer::StartGame(){
+    mHand->PushCard(mCard->GetCards()[0], 0);
+    mHand->PushCard(mCard->GetCards()[1], 1);
+    mHand->PushCard(mCard->GetCards()[2], 2);
+    mHand->PushCard(mCard->GetCards()[3], 3);
+    mTable->GetSpot(2)->PushCard(mCard->GetCards()[4]);
+    mTable->GetSpot(3)->PushCard(mCard->GetCards()[5]);
+    mTable1->GetSpot(2)->PushCard(mCard->GetCards()[6]);
+    mTable1->GetSpot(3)->PushCard(mCard->GetCards()[7]);
+   
+        
 }
 
 void GameLayer::OnImGuiRender(){
     ImGui::Begin("Stats");
         
 		std::string name = "None";
-        if (m_HoveredEntity)
+        int index = 0;
+        if (m_HoveredEntity){
 			name = m_HoveredEntity.GetComponent<CE::TagComponent>().Tag;
+            index = m_HoveredEntity.GetComponent<CE::TransformComponent>().Translation.z;
+        }
 		ImGui::Text("Hovered Entity: %s", name.c_str());
         auto stats = CE::Renderer2D::GetStats();
 		ImGui::Text("Renderer2D Stats:");
@@ -163,6 +232,8 @@ void GameLayer::OnImGuiRender(){
 		ImGui::Text("Quads: %d", stats.QuadCount);
 		ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
 		ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
+        // ImGui::Text("selected: %i", mCard->Selected);
+        ImGui::Text("index: %d", index);
 
     ImGui::End();
 }
