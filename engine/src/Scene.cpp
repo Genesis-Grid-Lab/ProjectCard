@@ -132,36 +132,52 @@ namespace CE {
 
 	}
 
-	void Scene::OnMouseInput(float mouseX, float mouseY, bool mousePressed){
+	void Scene::OnMouseInput(float mouseX, float mouseY, bool mousePressed, Timestep ts){
 		auto group1 = m_Registry.group<ButtonComponent>(entt::get<TransformComponent>);
 		for(auto entity : group1){
 
 			auto [transform, button] = group1.get<TransformComponent, ButtonComponent>(entity);
 
-			bool hovered = mouseX >= transform.Translation.x && mouseX <= transform.Translation.x + transform.Scale.x &&
-		               mouseY >= transform.Translation.y && mouseY <= transform.Translation.y + transform.Scale.y;
+			float halfWidth  = transform.Scale.x * 0.5f;
+			float halfHeight = transform.Scale.y * 0.5f;
 
-			button.Hovered = hovered;
+			bool hovered = mouseX >= (transform.Translation.x - halfWidth) &&
+			mouseX <= (transform.Translation.x + halfWidth) &&
+			mouseY >= (transform.Translation.y - halfHeight) &&
+			mouseY <= (transform.Translation.y + halfHeight);
 
-			if (hovered && mousePressed && !button.ClickedLastFrame) {
+			button.Hovered = hovered;			
+
+			if (hovered && mousePressed && !button.ClickedLastFrame) {				
 				if (button.OnClick)
-					button.OnClick();if (hovered && mousePressed && !button.ClickedLastFrame) {
-						if (button.OnClick)
-							button.OnClick();
-
-						button.ClickedLastFrame = true;
-					}
-					else if (!mousePressed) {
-						button.ClickedLastFrame = false;
-					}
-	
-					button.ClickedLastFrame = true;
+					button.OnClick();				
+				button.ClickedLastFrame = true;
 			}
 			else if (!mousePressed) {
 				button.ClickedLastFrame = false;
 			}
-		}
+
+			//Animate scale			
+			if(button.ClickedLastFrame)
+				button.TargetScale = button.OriginalScale * 0.95f;
+			else if (button.Hovered)
+				button.TargetScale = button.OriginalScale * 1.05f;
+			else
+				button.TargetScale = button.OriginalScale;
+	
+			transform.Scale = glm::mix(transform.Scale, button.TargetScale, 0.2f);
+
+			button.BaseColor = button.Color;
+			button.CurrentColor = button.Color;
+
+			// Animate Color
+			glm::vec4 hoverColor = button.BaseColor * 1.2f;
+			hoverColor.a = button.BaseColor.a; // preserve alpha
+	
+			button.CurrentColor = glm::mix(button.CurrentColor, button.Hovered ? hoverColor : button.BaseColor, 0.2f);
+			button.Color = button.CurrentColor;
 	}
+}
 
 	void Scene::DuplicateEntity(Entity entity)
 	{

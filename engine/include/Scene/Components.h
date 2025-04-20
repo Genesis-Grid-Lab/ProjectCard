@@ -78,6 +78,10 @@ namespace CE {
 		std::function<void()> OnClick = nullptr;
 		bool Hovered = false;
 		bool ClickedLastFrame = false;
+		glm::vec3 OriginalScale = { 120, 50, 1 };
+    	glm::vec3 TargetScale = { 120, 50, 1 };
+		glm::vec4 BaseColor = { 1, 1, 1, 1 };
+    	glm::vec4 CurrentColor = { 1, 1, 1, 1 };
 	};
 
 }
