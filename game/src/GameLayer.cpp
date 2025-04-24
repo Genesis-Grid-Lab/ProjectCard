@@ -26,7 +26,7 @@ void GameLayer::OnAttach(){
     CreateUI();
     
     mCard = new Deck(m_Scene);
-    glm::vec2 tablePos = {SCREEN_WIDTH / 2, 200};
+    glm::vec2 tablePos = {SCREEN_WIDTH / 2, 300};
     glm::vec2 tableSize = {Card_width * 6 + 30, Card_height};
     mTable = new Table(m_Scene, tablePos, tableSize);
 
@@ -38,10 +38,6 @@ void GameLayer::OnAttach(){
     mAI2Hand = new AIHand();
     mAI3Hand = new AIHand();
 
-    // auto& tc = mCard->GetID().GetComponent<TransformComponent>();
-    // tc.Translation = { 720 / 2, 1280 / 2, 1};
-    // tc.Scale = { 80, 120, 1};
-
     StartGame();
     
 }
@@ -51,97 +47,41 @@ void GameLayer::CreateUI(){
     AI1Tex = GA::CreateRef<CE::Texture2D>("Resources/Cards/Characters/char_1.png");    
     AI2Tex = GA::CreateRef<CE::Texture2D>("Resources/Cards/Characters/char_2.png");    
     AI3Tex = GA::CreateRef<CE::Texture2D>("Resources/Cards/Characters/char_3.png");    
+    PlayerTex = GA::CreateRef<CE::Texture2D>("Resources/Cards/Characters/char_12.png");   
+    TakeTex = GA::CreateRef<CE::Texture2D>("Resources/takeimg.png");
+    BuildTex = GA::CreateRef<CE::Texture2D>("Resources/buildimg.png");
+    TrailTex = GA::CreateRef<CE::Texture2D>("Resources/trail.png");
+    UndoTex = GA::CreateRef<CE::Texture2D>("Resources/undoimg.png"); 
+    SettingsTex = GA::CreateRef<CE::Texture2D>("Resources/settingimgpng.png"); 
+
+    mPlayerBorder = new Border(m_Scene, "PlayerBorder", {SCREEN_WIDTH / 2, 40}, {SCREEN_WIDTH, 80});
+    mAIBorder = new Border(m_Scene, "AIBorder", {SCREEN_WIDTH / 2, 1150}, {SCREEN_WIDTH, 50});
+    mButtonBorder = new Border(m_Scene, "ButtonBorder", {SCREEN_WIDTH / 2, 1230}, {SCREEN_WIDTH, 50});
 
     auto& BackGround = m_Scene->CreateEntity("BackGround");
     BackGround.AddComponent<CE::UIElement>().Texture = BackTex;
     auto& BGTC = BackGround.GetComponent<CE::TransformComponent>();
     BGTC.Translation = {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0};
     BGTC.Scale = { 720, 1280, 1};
+
+    int buttonOffset = 50;
+
+    mButtonBorder->PushButtonComponent("TakeButton", Anchor::Left, {30,0}, TakeTex, {120, 50});
+
+    mButtonBorder->PushButtonComponent("BuildButton", Anchor::Left, {150 + buttonOffset,0}, BuildTex, {120, 50});   
+
+    mButtonBorder->PushButtonComponent("TrailButton", Anchor::Right, {-150 - buttonOffset,0}, TrailTex, {120, 50});
+
+    mButtonBorder->PushButtonComponent("UndoButton", Anchor::Right, {-30,0}, UndoTex, {120, 50});
+
+    mAIBorder->PushComponent("AI1", Anchor::Left,{0,0}, AI1Tex, {50, 50});    
+    mAIBorder->PushComponent("AI2", Anchor::Center,{0,0}, AI2Tex, {50, 50});    
+    mAIBorder->PushComponent("AI3",Anchor::Right, {0,0}, AI3Tex , {50, 50});
+
+    mPlayerBorder->PushComponent("PlayerIcon", Anchor::Left, {10, 0} , PlayerTex, {80, 80});  
+    mPlayerBorder->PushComponent("PlayerPoints", Anchor::Right, {-65, 0}, nullptr, {100, 80}, {1,0,1,1});
+    mPlayerBorder->PushButtonComponent("SettingsButton", Anchor::Right, {-10,0}, SettingsTex, {50, 80});
     
-    float distButton = 150;
-    float BuildWidthPos = (SCREEN_WIDTH / 2) - (distButton / 2); 
-    float TrailWidthPos = (SCREEN_WIDTH / 2) + (distButton / 2);
-
-    TakeButton = m_Scene->CreateEntity("TakeButton");
-    auto& TBUI = TakeButton.AddComponent<CE::ButtonComponent>();
-    auto& TBTC = TakeButton.GetComponent<CE::TransformComponent>();
-
-    TBTC.Translation = {BuildWidthPos - distButton, 1230, 5};
-    TBTC.Scale = {120, 50, 1};
-    TBUI.Color = { 1, 0, 0, 1};
-    TBUI.OriginalScale = TBTC.Scale;
-    TBUI.TargetScale = TBTC.Scale;
-    TBUI.BaseColor = TBUI.Color;
-    TBUI.CurrentColor = TBUI.Color;
-
-    BuildButton = m_Scene->CreateEntity("BuildButton");
-    auto& BBUI = BuildButton.AddComponent<CE::ButtonComponent>();
-    auto& BBTC = BuildButton.GetComponent<CE::TransformComponent>();
-
-    BBTC.Translation = {BuildWidthPos , 1230, 5};
-    BBTC.Scale = {120, 50, 1};
-    BBUI.Color = { 0, 1, 0, 1};
-    BBUI.OriginalScale = BBTC.Scale;
-    BBUI.TargetScale = BBTC.Scale;
-    BBUI.BaseColor = BBUI.Color;
-    BBUI.CurrentColor = BBUI.Color;
-
-    TrailButton = m_Scene->CreateEntity("TrailButton");
-    auto& TB2UI = TrailButton.AddComponent<CE::ButtonComponent>();
-    auto& TB2TC = TrailButton.GetComponent<CE::TransformComponent>();
-    
-    TB2TC.Translation = {TrailWidthPos, 1230, 5};
-    TB2TC.Scale = {120, 50, 1};
-    TB2UI.Color = { 0, 0, 1, 1};
-    TB2UI.OriginalScale = TB2TC.Scale;
-    TB2UI.TargetScale = TB2TC.Scale;
-    TB2UI.BaseColor = TB2UI.Color;
-    TB2UI.CurrentColor = TB2UI.Color;
-
-    UndoButton = m_Scene->CreateEntity("UndoButton");
-    auto& UBUI = UndoButton.AddComponent<CE::ButtonComponent>();
-    auto& UBTC = UndoButton.GetComponent<CE::TransformComponent>();
-
-    UBTC.Translation = {TrailWidthPos + distButton, 1230, 5};
-    UBTC.Scale = {120, 50, 1};
-    UBUI.Color = { 1, 1, 0, 1};
-    UBUI.OriginalScale = UBTC.Scale;
-    UBUI.TargetScale = UBTC.Scale;
-    UBUI.BaseColor = UBUI.Color;
-    UBUI.CurrentColor = UBUI.Color;
-
-    auto& AI1 = m_Scene->CreateEntity("AI1");
-    auto& AI1UI = AI1.AddComponent<CE::UIElement>();    
-    AI1UI.Texture = AI1Tex;
-    auto& AI1TC = AI1.GetComponent<CE::TransformComponent>();
-    AI1TC.Translation = {50, 50, 5};
-    AI1TC.Scale = { 50, 50, 1};
-
-    auto& AI2 = m_Scene->CreateEntity("AI2");
-    auto& AI2UI = AI2.AddComponent<CE::UIElement>();
-    AI2UI.Texture = AI2Tex;
-    auto& AI2TC = AI2.GetComponent<CE::TransformComponent>();
-    AI2TC.Translation = {SCREEN_WIDTH / 2, 50, 5};
-    AI2TC.Scale = { 50, 50, 1};
-
-    auto& AI3 = m_Scene->CreateEntity("AI3");
-    auto& AI3UI = AI3.AddComponent<CE::UIElement>();
-    AI3UI.Texture = AI3Tex;
-    auto& AI3TC = AI3.GetComponent<CE::TransformComponent>();
-    AI3TC.Translation = {SCREEN_WIDTH - 50, 50, 5};
-    AI3TC.Scale = { 50, 50, 1};
-
-    auto& PlayerIcon = m_Scene->CreateEntity("PlayerIcon");
-    PlayerIcon.AddComponent<CE::UIElement>().Color = {1, 0, 1, 1};
-    auto& PITC = PlayerIcon.GetComponent<CE::TransformComponent>();
-    PITC.Translation = {BuildWidthPos - distButton, 1150, 5};
-    PITC.Scale = { 80, 80, 1};
-
-    auto& PlayerPoints = m_Scene->CreateEntity("PlayerPoints");
-    PlayerPoints.AddComponent<CE::UIElement>().Color = {1, 0, 1, 1};
-    auto& PPTC = PlayerPoints.GetComponent<CE::TransformComponent>();
-    PPTC.Translation = {TrailWidthPos + distButton, 1150, 5};
-    PPTC.Scale = { 100, 80, 1};
 }
 
 void GameLayer::OnDetach(){
@@ -187,7 +127,7 @@ void GameLayer::OnUpdate(Timestep ts){
         }
         if(m_TurnManager.IsHumanTurn()){            
             
-            if(m_HoveredEntity == card->GetID() && Input::IsMouseButtonPressed(0) && !card->OnTable ){            
+            if(m_HoveredEntity == card->GetID() && Input::IsMouseButtonPressed(0) && !card->OnTable && !m_TurnManager.Played){            
                 tc.Translation = {Input::GetMouseX(), Input::GetMouseY(), 4};
                 card->Selected = true;      
                 selectedValue = card->GetValue();
@@ -197,15 +137,40 @@ void GameLayer::OnUpdate(Timestep ts){
                 card->Selected = false;
     
                 bool dropped = false;
-    
+                bool spotEmpty = false;
                 // Try table spots
                 for (int i = 0; i < mTable->GetSpotCount(); ++i) {
                     auto spot = mTable->GetSpot(i);
                     if (spot->IsInside(tc.Translation)) {
+                        if(!spot->GetCards().empty())
+                            spotValue = spot->GetCards().front()->GetValue();
+                        workingSpot = spot;
+                        workingCard = card;
                         spot->PushCard(card, mHand->GetCards(), PlayedCards);
                         dropped = true;
+                        spotEmpty = true;
+                        m_TurnManager.Played = true;
                         break;
                     }
+                }
+
+                auto mouseX = Input::GetMouseX();
+                auto mouseY = Input::GetMouseY();
+
+                auto& transform = mTable->GetID().GetComponent<CE::TransformComponent>();
+                float halfWidth  = transform.Scale.x * 0.5f;
+                float halfHeight = transform.Scale.y * 0.5f;
+
+                bool hovered = mouseX >= (transform.Translation.x - halfWidth) &&
+                mouseX <= (transform.Translation.x + halfWidth) &&
+                mouseY >= (transform.Translation.y - halfHeight) &&
+                mouseY <= (transform.Translation.y + halfHeight);
+
+                if(hovered && !spotEmpty){
+                    workingCard = card;
+                    mTable->AddSpotAndPushCard(card, mHand->GetCards(), PlayedCards);
+                    dropped = true;
+                    m_TurnManager.Played = true;
                 }
     
                 // Return to hand if not dropped
@@ -223,24 +188,41 @@ void GameLayer::OnUpdate(Timestep ts){
         // tc.Translation = glm::mix(tc.Translation, card->OriginalPosition, 0.2f);
     }
 
-    TakeButton.GetComponent<CE::ButtonComponent>().OnClick = [this](){
-        // if(selectedValue == )
-        m_AITurnTimer = 2.0f; // 2 second delay before AI acts
-        m_TurnManager.NextTurn();
-        CE_INFO("TAKE");
+    mButtonBorder->GetComponent("TakeButton").entity.GetComponent<CE::ButtonComponent>().OnClick = [this](){
+        m_AITurnTimer = 1.0f; // 2 second delay before AI acts
+        if(selectedValue == spotValue){
+            m_TurnManager.Played = false;
+            TakeButtonFnc(PlayerType::Human);
+            m_TurnManager.NextTurn();
+        }else{
+            CE_INFO("NOT EQUAL");
+            if(workingCard){
+                CE_INFO("working");
+                workingCard->GetID().GetComponent<CE::TransformComponent>().Translation = workingCard->LastPos;
+                m_TurnManager.Played = false;
+            }
+        }
     };
 
-    BuildButton.GetComponent<CE::ButtonComponent>().OnClick = [this](){
+    mButtonBorder->GetComponent("BuildButton").entity.GetComponent<CE::ButtonComponent>().OnClick = [this](){
+        m_TurnManager.Played = false;
+        BuildButtonFnc(PlayerType::Human);
+        m_TurnManager.NextTurn();
         CE_INFO("BUILD");
     };
 
-    TrailButton.GetComponent<CE::ButtonComponent>().OnClick = [this](){
-        
+    mButtonBorder->GetComponent("TrailButton").entity.GetComponent<CE::ButtonComponent>().OnClick = [this](){
+        m_TurnManager.Played = false;
+        m_TurnManager.NextTurn();
         CE_INFO("TRAIL");
     };
 
-    UndoButton.GetComponent<CE::ButtonComponent>().OnClick = [this](){
-        CE_INFO("UNDO");
+    mButtonBorder->GetComponent("UndoButton").entity.GetComponent<CE::ButtonComponent>().OnClick = [this](){        
+       UndoButtonFnc();
+    };
+
+    mPlayerBorder->GetComponent("SettingsButton").entity.GetComponent<CE::ButtonComponent>().OnClick = [this](){
+        CE_INFO("SETTINGS");
     };
 
     if (!m_TurnManager.IsHumanTurn()) {
@@ -269,6 +251,72 @@ void GameLayer::OnUpdate(Timestep ts){
     debug = true;
 }
 
+void GameLayer::TakeButtonFnc(PlayerType player){
+    CE_INFO("TAKE");
+    if(selectedValue == spotValue){
+        for(auto& spot : mTable->GetAllSpots()){
+            
+            if(spot == workingSpot){
+
+                for(auto& card : spot->GetCards()){
+                    
+                    if(card == workingCard){
+                        spot->RemoveCard(card);                        
+                    }
+                }
+                spot->RemoveCard(spot->GetCards().front());                
+            }
+        }        
+    }
+}
+
+void GameLayer::BuildButtonFnc(PlayerType player){
+    if (!workingCard || !workingSpot || selectedValue == 0)
+        return;
+
+    for (auto& spot : mTable->GetAllSpots()) {
+        if (!spot->IsEmpty()) {
+            int spotCardValue = spot->GetCards().front()->GetValue();
+            int combined = selectedValue + spotCardValue;
+
+            // Search for a card with that combined value in hand
+            for (auto& handCard : mHand->GetCards()) {
+                if (handCard != workingCard && handCard->GetValue() == combined) {
+                    // Perform build
+                    spot->PushCard(workingCard, mHand->GetCards(), PlayedCards);
+                    spot->PushCard(handCard, mHand->GetCards(), PlayedCards);
+                    m_TurnManager.Played = true;
+                    m_TurnManager.NextTurn();
+                    CE_INFO("BUILD SUCCESS: {0} + {1} = {2}", selectedValue, spotCardValue, combined);
+                    return;
+                }
+            }
+        }
+    }
+
+    // If no build, reset card position
+    if (workingCard) {
+        workingCard->GetID().GetComponent<TransformComponent>().Translation = workingCard->LastPos;
+    }
+
+}
+void GameLayer::TrailButtonFnc(PlayerType player){
+
+}
+void GameLayer::UndoButtonFnc(){
+    if (!workingCard) return;
+
+    workingCard->GetID().GetComponent<CE::TransformComponent>().Translation = workingCard->LastPos;
+
+    // Optional: remove card from table if already pushed
+    // for (auto& spot : mTable->GetAllSpots()) {
+    //     spot->RemoveCard(workingCard); // You need a RemoveCard method in Spot
+    // }
+
+    m_TurnManager.Played = false;
+    CE_INFO("Move undone.");
+}
+
 GA::Ref<Card> PickBestCard(std::vector<GA::Ref<Card>>& cards){
     // Pick best card from hand
 	auto bestCardIt = std::max_element(cards.begin(), cards.end(),
@@ -294,14 +342,40 @@ void GameLayer::RunAITurn(PlayerType aiTurn) {
     case PlayerType::AI1:
         {
 
-            // Find a spot to play it
-            for (int i = 0; i < 6; ++i) {
-                auto spot = mTable->GetSpot(i);
-                if (spot->IsAvailable()) {
-                    CE_INFO(" ai1 card play: {0}", PickBestCard(mAI1Hand->GetCards())->GetValue());
+            // // Find a spot to play it
+            // for (int i = 0; i < 6; ++i) {
+            //     auto spot = mTable->GetSpot(i);
+            //     if (spot->IsAvailable()) {
+            //         CE_INFO(" ai1 card play: {0}", PickBestCard(mAI1Hand->GetCards())->GetValue());
+            //         spot->PushCard(PickBestCard(mAI1Hand->GetCards()), mAI1Hand->GetCards(), PlayedCards);
+            //         return;
+            //     }
+            // }
+
+            bool noSpot = true;
+
+            for(auto& spot : mTable->GetAllSpots()){
+                if(!spot->IsEmpty()){
+                    if(spot->GetCards().front()->GetValue() == PickBestCard(mAI1Hand->GetCards())->GetValue()){
+                        workingSpot = spot;
+                        workingCard = PickBestCard(mAI1Hand->GetCards());
+                        CE_INFO(" ai1 card TAKE: {0}", PickBestCard(mAI1Hand->GetCards())->GetValue());
+                        TakeButtonFnc(PlayerType::AI1);
+                        noSpot = false;
+                        return;
+                    }                    
+                }else{                    
                     spot->PushCard(PickBestCard(mAI1Hand->GetCards()), mAI1Hand->GetCards(), PlayedCards);
+                    noSpot = false;
+                    CE_INFO(" ai1 card PLAY: {0}", PickBestCard(mAI1Hand->GetCards())->GetValue());
                     return;
-                }
+                }                
+
+            }
+
+            if(noSpot){
+                mTable->AddSpotAndPushCard(PickBestCard(mAI1Hand->GetCards()), mAI1Hand->GetCards(), PlayedCards);
+                CE_INFO(" ai1 card PLAY AND PSUH: {0}", PickBestCard(mAI1Hand->GetCards())->GetValue());
             }
             break;
         }
@@ -309,13 +383,39 @@ void GameLayer::RunAITurn(PlayerType aiTurn) {
         {
 
             // Find a spot to play it
-            for (int i = 0; i < 6; ++i) {
-                auto spot = mTable->GetSpot(i);
-                if (spot->IsAvailable()) {
-                    CE_INFO(" ai2 card play: {0}", PickBestCard(mAI2Hand->GetCards())->GetValue());
+            // for (int i = 0; i < 6; ++i) {
+            //     auto spot = mTable->GetSpot(i);
+            //     if (spot->IsAvailable()) {
+            //         CE_INFO(" ai2 card play: {0}", PickBestCard(mAI2Hand->GetCards())->GetValue());
+            //         spot->PushCard(PickBestCard(mAI2Hand->GetCards()), mAI2Hand->GetCards(), PlayedCards);
+            //         return;
+            //     }
+            // }
+
+            bool noSpot = true;
+
+            for(auto& spot : mTable->GetAllSpots()){
+                if(!spot->IsEmpty()){
+                    if(spot->GetCards().front()->GetValue() == PickBestCard(mAI2Hand->GetCards())->GetValue()){
+                        workingSpot = spot;
+                        workingCard = PickBestCard(mAI2Hand->GetCards());
+                        noSpot = false;
+                        CE_INFO(" ai2 card TAKE: {0}", PickBestCard(mAI2Hand->GetCards())->GetValue());
+                        TakeButtonFnc(PlayerType::AI1);
+                        return;
+                    }                    
+                }else{
                     spot->PushCard(PickBestCard(mAI2Hand->GetCards()), mAI2Hand->GetCards(), PlayedCards);
+                    noSpot = false;
+                    CE_INFO(" ai2 card PLAY: {0}", PickBestCard(mAI2Hand->GetCards())->GetValue());
                     return;
                 }
+
+            }
+
+            if(noSpot){
+                mTable->AddSpotAndPushCard(PickBestCard(mAI2Hand->GetCards()), mAI2Hand->GetCards(), PlayedCards);
+                CE_INFO(" ai2 card PLAY AND PUSH: {0}", PickBestCard(mAI2Hand->GetCards())->GetValue());
             }
             break;
         }
@@ -323,13 +423,39 @@ void GameLayer::RunAITurn(PlayerType aiTurn) {
         {
 
             // Find a spot to play it
-            for (int i = 0; i < 6; ++i) {
-                auto spot = mTable->GetSpot(i);
-                if (spot->IsAvailable()) {
-                    CE_INFO(" ai3 card play: {0}", PickBestCard(mAI3Hand->GetCards())->GetValue());
+            // for (int i = 0; i < 6; ++i) {
+            //     auto spot = mTable->GetSpot(i);
+            //     if (spot->IsAvailable()) {
+            //         CE_INFO(" ai3 card play: {0}", PickBestCard(mAI3Hand->GetCards())->GetValue());
+            //         spot->PushCard(PickBestCard(mAI3Hand->GetCards()), mAI3Hand->GetCards(), PlayedCards);
+            //         return;
+            //     }
+            // }
+
+            bool noSpot = true;
+
+            for(auto& spot : mTable->GetAllSpots()){
+                if(!spot->IsEmpty()){
+                    if(spot->GetCards().front()->GetValue() == PickBestCard(mAI3Hand->GetCards())->GetValue()){
+                        workingSpot = spot;
+                        workingCard = PickBestCard(mAI3Hand->GetCards());
+                        CE_INFO(" ai2 card TAKE: {0}", PickBestCard(mAI3Hand->GetCards())->GetValue());
+                        noSpot = false;
+                        TakeButtonFnc(PlayerType::AI1);
+                        return;
+                    }                    
+                }else{
                     spot->PushCard(PickBestCard(mAI3Hand->GetCards()), mAI3Hand->GetCards(), PlayedCards);
+                    noSpot = false;
+                    CE_INFO(" ai2 card PLAY: {0}", PickBestCard(mAI3Hand->GetCards())->GetValue());
                     return;
                 }
+
+            }
+
+            if(noSpot){
+                mTable->AddSpotAndPushCard(PickBestCard(mAI3Hand->GetCards()), mAI3Hand->GetCards(), PlayedCards);
+                CE_INFO(" ai2 card PLAY AND PUSH: {0}", PickBestCard(mAI3Hand->GetCards())->GetValue());
             }
             break;
         }
@@ -342,6 +468,7 @@ void GameLayer::RunAITurn(PlayerType aiTurn) {
 
 void GameLayer::DealNewRound() {
 
+    Shuffle();
 	// Clear previous round hands if needed (optional)
 
 	// Player hand
@@ -358,14 +485,18 @@ void GameLayer::DealNewRound() {
 	CE_INFO("New round dealt. Cards remaining: {0}", (int)GameCards.size());
 }
 
-
-void GameLayer::StartGame(){
-    GameCards = mCard->GetCards();
+void GameLayer::Shuffle(){
     std::shuffle(GameCards.begin(), GameCards.end(), std::default_random_engine());
     
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(std::begin(GameCards), std::end(GameCards), g);
+}
+
+void GameLayer::StartGame(){
+    GameCards = mCard->GetCards();
+    
+    Shuffle();
 
 	// Place next cards on table
     mTable->AddSpotAndPushCard(GameCards[4],GameCards,PlayedCards);
@@ -403,6 +534,7 @@ void GameLayer::OnImGuiRender(){
     ImGui::End();
     ImGui::Begin("Game");
     ImGui::Text("Selected Value: %d", selectedValue);
+    ImGui::Text("Spot Value: %d", spotValue);
     ImGui::Text("Current turn: %d", (int)m_TurnManager.Current);
         ImGui::Text("AI1:");
         ImGui::Text("Number of Cards: %d",mAI1Hand->GetCards().size());

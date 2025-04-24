@@ -130,6 +130,12 @@ public:
         }
     }
 
+    void RemoveCard(GA::Ref<Card> card){   
+        card->TargetPos = {900, 1500, 3};
+        m_Cards.erase(std::find(m_Cards.begin(), m_Cards.end(), card));        
+        Reorder();
+    }
+
     void Reorder() {
         for (size_t i = 0; i < m_Cards.size(); ++i) {
             auto& card = m_Cards[i];
@@ -180,62 +186,15 @@ private:
 };
 
 
-// class Table {
-// public:
-//     Table(GA::Ref<Scene>& scene, glm::vec2& pos, glm::vec2& size, int spotCount = 6): m_Pos(pos), m_Scene(scene){
-//         ID = scene->CreateEntity("Table");
-//         ID.AddComponent<SpriteRendererComponent>().Color = {0, 0,1,1};
-//         ID.GetComponent<TransformComponent>().Translation = {pos, 1};
-//         ID.GetComponent<TransformComponent>().Scale = {size, 1};        
-
-//         CreateSpots(pos, spotCount);
-//     }
-
-//     ~Table(){
-
-//     }
-
-//     const std::vector<GA::Ref<Spot>>& GetAllSpots() const {
-// 		return mSpot;
-// 	}
-
-// 	int GetSpotCount() const {
-// 		return (int)mSpot.size();
-// 	}
-
-//     GA::Ref<Spot> GetSpot(int place){
-//         return mSpot[place];
-//     }
-// private:
-//     void CreateSpots(const glm::vec2& center, int count) {
-//         mSpot.reserve(count);
-//         glm::vec2 spotSize = { Card_width, Card_height };
-
-//         float spacing = 5.0f;
-//         float totalWidth = count * Card_width + (count - 1) * spacing;
-//         float startX = center.x - totalWidth / 2 + Card_width / 2;
-
-//         for (int i = 0; i < count; ++i) {
-//             float x = startX + i * (Card_width + spacing);
-//             glm::vec2 pos = { x, center.y };
-//             auto spot = GA::CreateRef<Spot>(m_Scene, pos, spotSize);
-//             mSpot.push_back(spot);
-//         }
-//     }   
-// private:
-//     std::vector<GA::Ref<Spot>> mSpot;
-//     GA::Ref<Scene> m_Scene;
-//     Entity ID;
-//     glm::vec2 m_Pos;    
-// };
-
 class Table {
     public:
         Table(GA::Ref<Scene>& scene, glm::vec2& pos, glm::vec2& size)
-            : m_Pos(pos), m_Scene(scene) {
+            : m_Pos(pos), m_Scene(scene),m_InitialSize(size) {
             ID = scene->CreateEntity("Table");
             ID.AddComponent<SpriteRendererComponent>().Color = {0, 0, 1, 1};
-            ID.GetComponent<TransformComponent>().Translation = {pos, 1};
+
+            glm::vec2 anchorPos = pos - glm::vec2(0, size.y * 0.5f); // anchor top center
+            ID.GetComponent<TransformComponent>().Translation = {anchorPos, 1};
             ID.GetComponent<TransformComponent>().Scale = {size, 1};        
         }
     
@@ -253,26 +212,46 @@ class Table {
             return mSpot[place];
         }
     
-        void AddSpotAndPushCard(GA::Ref<Card>& card, std::vector<GA::Ref<Card>>& GameCards,std::vector<GA::Ref<Card>>& playedCards) {
+        void AddSpotAndPushCard(GA::Ref<Card>& card, 
+                            std::vector<GA::Ref<Card>>& GameCards,
+                            std::vector<GA::Ref<Card>>& playedCards) {
             glm::vec2 spotSize = { Card_width, Card_height };
-            glm::vec2 newSpotPos = GetNextSpotPosition(mSpot.size());
+            glm::ivec2 offset = GetSpotPatternOffset(mSpot.size());
+            int row = offset.y;
+
+            GrowHeightIfNeeded(row + 1); // Ensure enough height for this row
+            glm::vec2 newSpotPos = m_Pos + glm::vec2((offset.x * (Card_width + 10.0f)) - 50, (offset.y * (Card_height + 10.0f)) - 55);
             auto spot = GA::CreateRef<Spot>(m_Scene, newSpotPos, spotSize);
             mSpot.push_back(spot);
             spot->PushCard(card, GameCards, playedCards);
+            
         }
+
+        Entity GetID() { return ID;}
     
     private:
-        glm::vec2 GetNextSpotPosition(int index) {
+        glm::vec2 GetSpotPatternOffset(int index) {
             // Pattern: center, right, down-center, down-right, left, down-left, etc.
             static const std::vector<glm::ivec2> pattern = {
                 {0, 0}, {1, 0}, {0, 1}, {1, 1}, {-1, 0}, {-1, 1}, {2, 0}, {2, 1},
                 {0, 2}, {1, 2}, {-1, 2}, {2, 2}, {-2, 0}, {-2, 1}, {-2, 2}, {0, 3}
             };
     
-            float spacingX = Card_width + 10.0f;
-            float spacingY = Card_height + 10.0f;
-            glm::vec2 offset = pattern[index % pattern.size()];
-            return m_Pos + glm::vec2((offset.x * spacingX) - 50, offset.y * spacingY);
+            
+            return pattern[index % pattern.size()];
+        }
+
+        void GrowHeightIfNeeded(int newRowCount) {
+            float newHeight = newRowCount * (Card_height + 10.0f);
+        
+            auto& tc = ID.GetComponent<TransformComponent>();
+            float oldHeight = tc.Scale.y;
+        
+            if (newHeight > oldHeight) {
+                tc.Scale.y = newHeight;
+                float delta = (newHeight - oldHeight) * 0.5f;
+                tc.Translation.y += delta; // move down so top stays fixed
+            }
         }
     
     private:
@@ -280,6 +259,7 @@ class Table {
         GA::Ref<Scene> m_Scene;
         Entity ID;
         glm::vec2 m_Pos;
+        glm::vec2 m_InitialSize;
     };
 
 class Hand {

@@ -6,6 +6,7 @@
 #include "Events/ApplicationEvent.h"
 #include "Config.h"
 #include "Game/Card.h"
+#include "Game/UI.h"
 
 enum class PlayerType { Human, AI1, AI2, AI3 };
 
@@ -13,6 +14,7 @@ class TurnManager {
 public:
     PlayerType Current = PlayerType::Human;
     int TurnCount = 0; // Counts how many cards have been played in this round
+    bool Played = false;
 
     void NextTurn() {
         Current = static_cast<PlayerType>((static_cast<int>(Current) + 1) % 4);
@@ -45,6 +47,12 @@ public:
     void StartGame();
     void DealNewRound();
     void RunAITurn(PlayerType aiTurn);
+    void Shuffle();
+
+    void TakeButtonFnc(PlayerType player);
+    void BuildButtonFnc(PlayerType player);
+    void TrailButtonFnc(PlayerType player);
+    void UndoButtonFnc();
 
     void CreateUI();
 
@@ -61,6 +69,9 @@ private:
     CE::Entity TrailButton;
     CE::Entity UndoButton;
     glm::vec3 OldPos;
+    Border* mAIBorder;
+    Border* mPlayerBorder;
+    Border* mButtonBorder;
     Deck *mCard;
     Table *mTable;    
     Hand *mHand;
@@ -72,6 +83,12 @@ private:
     GA::Ref<CE::Texture2D> AI1Tex;
     GA::Ref<CE::Texture2D> AI2Tex;
     GA::Ref<CE::Texture2D> AI3Tex; 
+    GA::Ref<CE::Texture2D> PlayerTex; 
+    GA::Ref<CE::Texture2D> TakeTex; 
+    GA::Ref<CE::Texture2D> BuildTex; 
+    GA::Ref<CE::Texture2D> TrailTex; 
+    GA::Ref<CE::Texture2D> UndoTex; 
+    GA::Ref<CE::Texture2D> SettingsTex; 
     bool debug = false;   
 private:
     bool m_AITurnInProgress = false;
@@ -82,4 +99,8 @@ private:
     std::vector<GA::Ref<Card>> GameCards;
     std::vector<GA::Ref<Card>> PlayedCards;
     int selectedValue = 0;
+    int spotValue = 0;
+    int playerPoints = 0;
+    GA::Ref<Spot> workingSpot;
+    GA::Ref<Card> workingCard;
 };

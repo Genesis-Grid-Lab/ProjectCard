@@ -95,6 +95,9 @@ void main()
 		case 31: texColor *= texture(u_Textures[31], Input.TexCoord * Input.TilingFactor); break;
 	}
 
+	if(texColor.a < 0.1)
+        discard;
+
 	vec4 debugColor = vec4(v_TexIndex / 32.0, 0.0, 1.0, 1.0);
 	color = texColor;
 	// color = debugColor;
