@@ -23,6 +23,18 @@ namespace CE {
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
 
+	Texture2D::Texture2D(uint32_t width, uint32_t height, GLenum internalFormat, GLenum dataFormat)
+		: m_Width(width), m_Height(height),  m_InternalFormat(internalFormat), m_DataFormat(dataFormat)
+	{
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Width, m_Height);
+
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
+
 	Texture2D::Texture2D(Ref<Framebuffer>& buffer){
 		CE_CORE_INFO("Creating Texture2D from Framebuffer");
 		m_RendererID = buffer->GetColorAttachmentRendererID();

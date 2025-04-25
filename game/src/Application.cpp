@@ -1,6 +1,6 @@
 #include "Application.h"
-// #include "Layers/TestLayer.h"
-#include "GameLayer.h"
+// #include "GameLayer.h"
+#include "Game/MainMenuLayer.h"
 #include <Renderer/Renderer.h>
 
 Application* Application::s_Instance = nullptr;
@@ -20,8 +20,8 @@ Application::Application(const std::string& name, ApplicationCommandLineArgs arg
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
 #endif        
-        // PushLayer(new TestLayer());
-        PushLayer(new GameLayer());
+        PushLayer(new MainMenuLayer());
+        // PushLayer(new GameLayer());
 
     }
 
@@ -39,6 +39,10 @@ void Application::PushOverlay(Layer* layer)
 {
     m_LayerStack.PushOverlay(layer);
     layer->OnAttach();
+}
+
+void Application::PopLayer(Layer* layer) {
+    m_LayerStack.PopLayer(layer);
 }
 
 void Application::Close(){
@@ -79,6 +83,18 @@ void Application::Run(){
         }
 
         m_Window->OnUpdate();
+
+        while (!m_LayerActionQueue.empty()) {
+            LayerAction action = m_LayerActionQueue.front();
+            m_LayerActionQueue.pop();
+        
+            if (action.Type == LayerActionType::Push) {
+                PushLayer(action.LayerPtr);
+            } else if (action.Type == LayerActionType::Pop) {
+                PopLayer(action.LayerPtr);
+                delete action.LayerPtr;
+            }
+        }
     }
 }
 

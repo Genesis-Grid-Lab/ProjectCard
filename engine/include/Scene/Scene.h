@@ -34,11 +34,13 @@ namespace CE {
         }
 
         void OnUpdateRuntime(Timestep ts);  
-        void DrawScreen(Ref<Framebuffer>& buffer);      
+        void DrawScreen(Ref<Framebuffer>& buffer);          
         void OnViewportResize(uint32_t width, uint32_t height);   
         void OnMouseInput(float mouseX, float mouseY, bool mousePressed, Timestep ts);     
 
         void DuplicateEntity(Entity entity);
+
+        Entity GetHoveredEntity();
 
         Camera& GetCam() { return m_Cam;}
         // Ref<Framebuffre>& GetBuffer() { return m_Framebuffer;}
@@ -52,7 +54,8 @@ namespace CE {
         Ref<CE::Texture2D> m_Screen;
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
         Camera m_Cam;
-        friend class Entity;
+        float m_MouseX, m_MouseY;
+        friend class Entity;                
         // friend class SceneSerializer;    
     };
 }

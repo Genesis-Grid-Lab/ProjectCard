@@ -28,6 +28,7 @@ namespace CE {
 	{
 	public:
         Texture2D(uint32_t width, uint32_t height);
+		Texture2D(uint32_t width, uint32_t height, GLenum internalFormat, GLenum dataFormat);
         Texture2D(const std::string& path);
 		Texture2D(Ref<Framebuffer>& buffer);
         virtual ~Texture2D();

@@ -10,6 +10,7 @@
 #include "Config.h"
 #include "Renderer/Camera.h"
 #include "Renderer/Texture.h"
+#include "Renderer/Font.h"
 
 namespace CE {
     struct IDComponent
@@ -82,6 +83,16 @@ namespace CE {
     	glm::vec3 TargetScale = { 120, 50, 1 };
 		glm::vec4 BaseColor = { 1, 1, 1, 1 };
     	glm::vec4 CurrentColor = { 1, 1, 1, 1 };
+
+		ButtonComponent() = default;
+		ButtonComponent(const ButtonComponent&) = default;		
+	};
+
+	struct TextUIComponent : public UIElement {
+		Ref<Font> Font;
+		std::string Text;
+		TextUIComponent() = default;
+		TextUIComponent(const TextUIComponent&) = default;
 	};
 
 }

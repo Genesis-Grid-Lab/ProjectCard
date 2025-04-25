@@ -9,6 +9,7 @@
 #include "Renderer/Camera.h"
 #include "Renderer/Texture.h"
 #include "Renderer/Framebuffer.h"
+#include "Renderer/Font.h"
 #include "Scene/Scene.h"
 #include "Scene/Components.h"
 #include "Scene/Entity.h"

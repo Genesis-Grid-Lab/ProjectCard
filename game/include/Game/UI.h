@@ -60,12 +60,30 @@ public:
 
         auto& CUI = comp.AddComponent<ButtonComponent>();
         if(texture) CUI.Texture = texture;
+        CUI.Color = color;
         CUI.OriginalScale = CTC.Scale;
         CUI.TargetScale = CTC.Scale;
         CUI.BaseColor = CUI.Color;
         CUI.CurrentColor = CUI.Color;
 
         m_Components[name] = {comp, anchor, offset};
+    }
+
+    void PushTextComponent(const std::string& name, Anchor anchor, const std::string& text,GA::Ref<Font> font,const glm::vec4& color = glm::vec4(1),
+                const glm::vec2& offset = {0,0}, const glm::vec2& size = {0,0}){
+        
+        glm::vec2 compSize = (size == glm::vec2(0)) ? m_Size : size;
+        glm::vec2 compPos = GetAnchoredPosition(m_Position, m_Size, compSize, anchor, offset);
+
+        Entity comp = m_Scene->CreateEntity(name);
+        auto& CTC = comp.GetComponent<TransformComponent>();
+        CTC.Translation = {compPos, 5};
+        CTC.Scale = {compSize, 1};
+
+        auto& CUI = comp.AddComponent<TextUIComponent>();
+        CUI.Text = text;
+        CUI.Font = font;
+        CUI.Color = color;
     }
 
     void SetPosition(glm::vec2 newPosition) {
@@ -107,6 +125,8 @@ private:
         else if (anchor == Anchor::Bottom)
             pos += glm::vec2(0, -borderSize.y / 2 + compSize.y / 2);
         // else center (no offset)
+
+        //todo change top and bottom
 
         return pos + offset;
     }

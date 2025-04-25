@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "Texture.h"
 #include "Scene/Components.h"
+#include "Font.h"
 
 namespace CE {
 
@@ -32,7 +33,13 @@ namespace CE {
 
         static void DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID = -1);
 		static void DrawUI(const glm::mat4& transform, UIElement& src, int entityID = -1);
+		static void DrawUI(const glm::vec3& position, TextUIComponent& src, int entityID = -1);
 		static void DrawScreen(Ref<Framebuffer>& buffer);
+		static void DrawGlyph(const glm::mat4& transform,
+			const glm::vec2& uv0, const glm::vec2& uv1,
+			const Ref<Texture2D>& texture, float tilingFactor = 1.0f, 
+			const glm::vec4& tintColor = glm::vec4(1.0f), int entityID = -1);
+		static void DrawText(const std::string& text, const glm::vec3& position, Ref<Font> font, const glm::vec4& color);
 
         // Stats
 		struct Statistics

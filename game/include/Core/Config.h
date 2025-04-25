@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <GLFW/glfw3.h>
+#include <queue>
 
 #define BIT(x) (1 << x)
 

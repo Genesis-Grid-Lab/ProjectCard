@@ -1,26 +1,17 @@
 #include "GameLayer.h"
 #include "ImGui/ImGuiInputs.h"
 #include <random>
+#include "Game/InGameMenuLayer.h"
 
 GameLayer::GameLayer(){
     
 }
 
 GameLayer::~GameLayer(){
-    delete mCard;
-    delete mTable;
-    delete mHand;
-    delete mAI1Hand;
-    delete mAI2Hand;
-    delete mAI3Hand;
+    // OnDetach();
 }
 
 void GameLayer::OnAttach(){
-    CE::FramebufferSpecification fbSpec;
-    fbSpec.Attachments = { CE::FramebufferTextureFormat::RGBA8, CE::FramebufferTextureFormat::RED_INTEGER, CE::FramebufferTextureFormat::Depth };
-    fbSpec.Width = SCREEN_WIDTH;
-    fbSpec.Height = SCREEN_HEIGHT;
-    m_Framebuffer = GA::CreateRef<CE::Framebuffer>(fbSpec);
     m_Scene = GA::CreateRef<CE::Scene>(SCREEN_WIDTH, SCREEN_HEIGHT);
     
     CreateUI();
@@ -53,6 +44,7 @@ void GameLayer::CreateUI(){
     TrailTex = GA::CreateRef<CE::Texture2D>("Resources/trail.png");
     UndoTex = GA::CreateRef<CE::Texture2D>("Resources/undoimg.png"); 
     SettingsTex = GA::CreateRef<CE::Texture2D>("Resources/settingimgpng.png"); 
+    mFont = GA::CreateRef<CE::Font>("Data/Fonts/fa-solid-900.ttf");
 
     mPlayerBorder = new Border(m_Scene, "PlayerBorder", {SCREEN_WIDTH / 2, 40}, {SCREEN_WIDTH, 80});
     mAIBorder = new Border(m_Scene, "AIBorder", {SCREEN_WIDTH / 2, 1150}, {SCREEN_WIDTH, 50});
@@ -80,44 +72,63 @@ void GameLayer::CreateUI(){
 
     mPlayerBorder->PushComponent("PlayerIcon", Anchor::Left, {10, 0} , PlayerTex, {80, 80});  
     mPlayerBorder->PushComponent("PlayerPoints", Anchor::Right, {-65, 0}, nullptr, {100, 80}, {1,0,1,1});
-    mPlayerBorder->PushButtonComponent("SettingsButton", Anchor::Right, {-10,0}, SettingsTex, {50, 80});
+    mPlayerBorder->PushButtonComponent("SettingsButton", Anchor::Right, {-10,0}, SettingsTex, {50, 80});  
     
 }
 
 void GameLayer::OnDetach(){
-    
+    delete mCard;
+    delete mTable;
+    delete mHand;
+    delete mAI1Hand;
+    delete mAI2Hand;
+    delete mAI3Hand;
+    delete mAIBorder;
+    delete mPlayerBorder;
+    delete mButtonBorder;
 }
 
-void GameLayer::OnUpdate(Timestep ts){    
-    // Render
-    CE::Renderer2D::ResetStats();
-    m_Framebuffer->Bind();
-    CE::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
-    CE::RenderCommand::Clear();
-
-    // Clear our entity ID attachment to -1
-    m_Framebuffer->ClearAttachment(1, -1);
-
-    m_Scene->OnUpdateRuntime(ts);   
-
-    auto my = Input::GetMouseY();
-    auto mx = Input::GetMouseX();
-
-    my = SCREEN_HEIGHT - my;
-    // mx = 1600 - mx;
+void GameLayer::OnUpdate(Timestep ts){
     
-    if(Input::GetMouseX() >= 0 && Input::GetMouseY() >= 0 && Input::GetMouseX() < SCREEN_WIDTH && Input::GetMouseY() < SCREEN_HEIGHT){            
-        int pixelData = m_Framebuffer->ReadPixel(1, mx, my);
-        // CE_INFO("Pixel {0}",pixelData);
-        // CE_INFO("mx: {0}, my: {1}" ,Input::GetMouseX(), Input::GetMouseY() );
-        m_HoveredEntity = pixelData == -1 ? CE::Entity() : CE::Entity((entt::entity)pixelData, m_Scene.get());            
-    }
-    
-    m_Framebuffer->Unbind();
-    CE::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
-    CE::RenderCommand::Clear();
-    
-    m_Scene->DrawScreen(m_Framebuffer);   
+    if(!m_Paused){
+        m_HoveredEntity = m_Scene->GetHoveredEntity();
+        // Render
+        CE::Renderer2D::ResetStats();    
+        m_Scene->OnUpdateRuntime(ts);   
+        
+        PlayerTurn();
+
+        ButtonLogic();
+
+        if (!m_TurnManager.IsHumanTurn()) {
+            m_AITurnTimer -= ts;
+            m_ShowAITurnText = true;
+            if(m_AITurnTimer <= 0.0f){
+                RunAITurn(m_TurnManager.Current);
+                m_TurnManager.NextTurn();
+                m_AITurnTimer = 2.0f;
+                m_ShowAITurnText = false;
+                if (m_TurnManager.IsRoundOver()) {
+                    m_RoundInProgress = false;
+                    if (GameCards.size() == 0) {
+                        // Game over
+                        CE_INFO("Game Over - Deck is empty");
+                    } else {
+                        DealNewRound();
+                    }
+                }
+            }
+            
+        }
+        
+        
+        m_Scene->OnMouseInput(Input::GetMouseX(), Input::GetMouseY(), Input::IsMouseButtonPressed(0), ts);  
+    }  
+
+    // CE_INFO("PAUSED: {0}", m_Paused);
+}
+
+void GameLayer::PlayerTurn(){
     for(auto card : PlayedCards){
         auto& tc = card->GetID().GetComponent<CE::TransformComponent>();
         
@@ -187,7 +198,9 @@ void GameLayer::OnUpdate(Timestep ts){
         sr.Color = card->Selected ? glm::vec4(1, 1, 1, 0.8f) : glm::vec4(1, 1, 1, 1.0f);
         // tc.Translation = glm::mix(tc.Translation, card->OriginalPosition, 0.2f);
     }
+}
 
+void GameLayer::ButtonLogic(){
     mButtonBorder->GetComponent("TakeButton").entity.GetComponent<CE::ButtonComponent>().OnClick = [this](){
         m_AITurnTimer = 1.0f; // 2 second delay before AI acts
         if(selectedValue == spotValue){
@@ -222,33 +235,9 @@ void GameLayer::OnUpdate(Timestep ts){
     };
 
     mPlayerBorder->GetComponent("SettingsButton").entity.GetComponent<CE::ButtonComponent>().OnClick = [this](){
-        CE_INFO("SETTINGS");
+        m_Paused = true;
+        Application::Get().QueueLayerAction(LayerActionType::Push, new InGameMenuLayer(&m_Paused));
     };
-
-    if (!m_TurnManager.IsHumanTurn()) {
-        m_AITurnTimer -= ts;
-        m_ShowAITurnText = true;
-        if(m_AITurnTimer <= 0.0f){
-            RunAITurn(m_TurnManager.Current);
-            m_TurnManager.NextTurn();
-            m_AITurnTimer = 2.0f;
-            m_ShowAITurnText = false;
-            if (m_TurnManager.IsRoundOver()) {
-                m_RoundInProgress = false;
-                if (GameCards.size() == 0) {
-                    // Game over
-                    CE_INFO("Game Over - Deck is empty");
-                } else {
-                    DealNewRound();
-                }
-            }
-        }
-        
-    }
-    
-    
-    m_Scene->OnMouseInput(Input::GetMouseX(), Input::GetMouseY(), Input::IsMouseButtonPressed(0), ts);
-    debug = true;
 }
 
 void GameLayer::TakeButtonFnc(PlayerType player){
@@ -512,10 +501,10 @@ void GameLayer::OnImGuiRender(){
         
 		std::string name = "None";
         int index = 0;
-        if (m_HoveredEntity){
-			name = m_HoveredEntity.GetComponent<CE::TagComponent>().Tag;
-            index = m_HoveredEntity.GetComponent<CE::TransformComponent>().Translation.z;
-        }
+        // if (m_HoveredEntity){
+		// 	name = m_HoveredEntity.GetComponent<CE::TagComponent>().Tag;
+        //     index = m_HoveredEntity.GetComponent<CE::TransformComponent>().Translation.z;
+        // }
 		ImGui::Text("Hovered Entity: %s", name.c_str());
         auto stats = CE::Renderer2D::GetStats();
 		ImGui::Text("Renderer2D Stats:");
@@ -538,30 +527,29 @@ void GameLayer::OnImGuiRender(){
     ImGui::Text("Current turn: %d", (int)m_TurnManager.Current);
         ImGui::Text("AI1:");
         ImGui::Text("Number of Cards: %d",mAI1Hand->GetCards().size());
-        for(auto card : mAI1Hand->GetCards()){
-            if(debug)
-                ImGui::Text("Card: %d", card->m_Value);
+        for(auto card : mAI1Hand->GetCards()){            
+            ImGui::Text("Card: %d", card->m_Value);
         }
         ImGui::Separator();
         ImGui::Text("AI2:");
         ImGui::Text("Number of Cards: %d",mAI2Hand->GetCards().size());
         for(auto card : mAI2Hand->GetCards()){
-            if(debug)
-                ImGui::Text("Card: %d", card->m_Value);
+            
+            ImGui::Text("Card: %d", card->m_Value);
         }
         ImGui::Separator();
         ImGui::Text("AI3:");
         ImGui::Text("Number of Cards: %d",mAI3Hand->GetCards().size());
         for(auto card : mAI3Hand->GetCards()){
-            if(debug)
-                ImGui::Text("Card: %d", card->m_Value);
+            
+            ImGui::Text("Card: %d", card->m_Value);
         }
         ImGui::Separator();
         ImGui::Text("Player:");
         ImGui::Text("Number of Cards: %d", mHand->GetCards().size());
         for(auto card : mHand->GetCards()){
-            if(debug)
-                ImGui::Text("Card: %d", card->m_Value);
+            
+            ImGui::Text("Card: %d", card->m_Value);
         }
         ImGui::Separator();
         ImGui::Text("Game:");
@@ -575,8 +563,7 @@ void GameLayer::OnEvent(Event& e){
     dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(GameLayer::OnResize));
 }
 
-bool GameLayer::OnResize(WindowResizeEvent& e){
-    m_Framebuffer->Resize(e.GetWidth(), e.GetHeight());
+bool GameLayer::OnResize(WindowResizeEvent& e){    
     m_Scene->OnViewportResize(e.GetWidth(), e.GetHeight());
 
     return false;

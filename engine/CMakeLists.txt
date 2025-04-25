@@ -3,7 +3,7 @@ project(CardEngine)
 file(GLOB_RECURSE source ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE headers ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 
-add_library(${PROJECT_NAME} SHARED ${source} ${headers} ${CMAKE_SOURCE_DIR}/vendor/stb_image/stb_image.cpp )
+add_library(${PROJECT_NAME} SHARED ${source} ${headers} ${CMAKE_SOURCE_DIR}/vendor/stb_image/stb_image.cpp ${CMAKE_SOURCE_DIR}/vendor/stb_image/stb_truetype.cpp )
 
 # export engine symbols
 target_compile_definitions(${PROJECT_NAME} PUBLIC

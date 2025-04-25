@@ -2,17 +2,27 @@
 
 #include "Scene/Components.h"
 #include "Renderer/Renderer2D.h"
+#include "Renderer/RenderCommand.h"
 #include <glm/glm.hpp>
 #include "CE_Assert.h"
 #include "Scene/Entity.h"
 
+
 namespace CE {
+
+	Entity GlobHovered;
 
     Scene::Scene(uint32_t width, uint32_t height){
 		m_Cam = Camera(0.0f, width, height, 0.0f);
 
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
+
+		FramebufferSpecification fbSpec;
+        fbSpec.Attachments = { CE::FramebufferTextureFormat::RGBA8, CE::FramebufferTextureFormat::RED_INTEGER, CE::FramebufferTextureFormat::Depth };
+        fbSpec.Width = width;
+        fbSpec.Height = height;
+        m_Framebuffer = CreateRef<CE::Framebuffer>(fbSpec);
 	}
     Scene::~Scene(){}
 
@@ -85,6 +95,11 @@ namespace CE {
 	}
 
     void Scene::OnUpdateRuntime(Timestep ts){
+		m_Framebuffer->Bind();
+		// Clear our entity ID attachment to -1
+		m_Framebuffer->ClearAttachment(1, -1);
+		RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
+    	RenderCommand::Clear();
         
 		Renderer2D::BeginCamera(m_Cam);
 		ViewEntity<Entity, UIElement>([this] (auto& entity, auto& comp){
@@ -100,6 +115,12 @@ namespace CE {
 			Renderer2D::DrawUI(transform.GetTransform(), ui, (int)entity);
 		}
 
+		ViewEntity<Entity, TextUIComponent>([this] (auto& entity, auto& comp){
+
+			auto& transform = entity.template GetComponent<TransformComponent>();	
+			Renderer2D::DrawUI(transform.Translation, comp);		
+		});		
+
 		auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 		for (auto entity : group)
 		{
@@ -111,9 +132,27 @@ namespace CE {
 
 		// 	auto& transform = entity.template GetComponent<TransformComponent>();
 		// 	Renderer2D::DrawSprite(transform.GetTransform(), comp, (int)entity);
-		// });
+		// });		
 
 		Renderer2D::EndCamera();
+
+		auto my = m_MouseY;
+		auto mx = m_MouseX;
+
+		my = m_ViewportHeight - my;	
+
+		if(m_MouseX >= 0 && m_MouseY >= 0 && m_MouseX < m_ViewportWidth && m_MouseY < m_ViewportHeight){            
+			int pixelData = m_Framebuffer->ReadPixel(1, mx, my);
+			// CE_INFO("Pixel {0}",pixelData);
+			// CE_INFO("mx: {0}, my: {1}" ,Input::GetMouseX(), Input::GetMouseY() );
+			GlobHovered = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, this);            
+		}
+
+		m_Framebuffer->Unbind();
+
+		CE::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
+        CE::RenderCommand::Clear();
+        DrawScreen(m_Framebuffer);
 		
     }
 
@@ -129,6 +168,8 @@ namespace CE {
 		m_ViewportHeight = height;
 
 		// m_Cam.SetProjection(0.0f, width, height, 0.0f);
+
+		m_Framebuffer->Resize(width, height);
 
 	}
 
@@ -177,7 +218,18 @@ namespace CE {
 			button.CurrentColor = glm::mix(button.CurrentColor, button.Hovered ? hoverColor : button.BaseColor, 0.2f);
 			button.Color = button.CurrentColor;
 	}
-}
+			
+		m_MouseX = mouseX;
+		m_MouseY = mouseY;
+	}
+
+	Entity Scene::GetHoveredEntity(){						
+
+		if(GlobHovered)
+			return GlobHovered;
+		else
+			return Entity();
+	}
 
 	void Scene::DuplicateEntity(Entity entity)
 	{
@@ -219,6 +271,11 @@ namespace CE {
 	void CE_API Scene::OnComponentAdded<ButtonComponent>(Entity entity, ButtonComponent& component)
 	{
 
+	}
+
+	template<>
+	void CE_API Scene::OnComponentAdded<TextUIComponent>(Entity entity, TextUIComponent& component)
+	{
 	}
 
 	template<>

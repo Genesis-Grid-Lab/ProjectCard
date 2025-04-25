@@ -46,7 +46,9 @@ public:
 
     void StartGame();
     void DealNewRound();
+    void PlayerTurn();
     void RunAITurn(PlayerType aiTurn);
+    void ButtonLogic();
     void Shuffle();
 
     void TakeButtonFnc(PlayerType player);
@@ -77,8 +79,7 @@ private:
     Hand *mHand;
     AIHand *mAI1Hand;
     AIHand *mAI2Hand;
-    AIHand *mAI3Hand;
-    GA::Ref<CE::Framebuffer> m_Framebuffer;
+    AIHand *mAI3Hand;    
     GA::Ref<CE::Texture2D> BackTex;
     GA::Ref<CE::Texture2D> AI1Tex;
     GA::Ref<CE::Texture2D> AI2Tex;
@@ -89,13 +90,14 @@ private:
     GA::Ref<CE::Texture2D> TrailTex; 
     GA::Ref<CE::Texture2D> UndoTex; 
     GA::Ref<CE::Texture2D> SettingsTex; 
-    bool debug = false;   
+    GA::Ref<CE::Font> mFont;    
 private:
     bool m_AITurnInProgress = false;
     float m_AITurnTimer = 0.0f;
     bool m_ShowAITurnText = false;    
     TurnManager m_TurnManager;
     bool m_RoundInProgress = false;
+    bool m_Paused = false;
     std::vector<GA::Ref<Card>> GameCards;
     std::vector<GA::Ref<Card>> PlayedCards;
     int selectedValue = 0;

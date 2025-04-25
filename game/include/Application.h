@@ -23,6 +23,16 @@ struct ApplicationCommandLineArgs{
     }
 };
 
+enum class LayerActionType{
+    Push,
+    Pop
+};
+
+struct LayerAction {
+    LayerActionType Type;
+    Layer* LayerPtr;
+};
+
 
 class Application{
 public:
@@ -33,6 +43,7 @@ public:
 
     void PushLayer(Layer* layer);
     void PushOverlay(Layer* layer);
+    void PopLayer(Layer* layer);
     ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer;}
     
     void Close();
@@ -42,18 +53,22 @@ public:
 
     ApplicationCommandLineArgs GetCommandLineArgs() const { return m_CommandLineArgs;}
 
+    void QueueLayerAction(LayerActionType type, Layer* layer) {
+        m_LayerActionQueue.push({ type, layer });
+    }
 private:
     void Run();
     bool OnWindowClose(WindowCloseEvent& e);
     bool OnWindowResize(WindowResizeEvent& e);
 private:
     ApplicationCommandLineArgs m_CommandLineArgs;
-    Scope<Window> m_Window;
+    GA::Scope<Window> m_Window;
     ImGuiLayer* m_ImGuiLayer;
     bool m_Running = true;
     bool m_Minimized = false;
     LayerStack m_LayerStack;
     float m_LastFrameTime = 0.0f;
+    std::queue<LayerAction> m_LayerActionQueue;
 private:
     static Application* s_Instance;
     friend int main(int argc, char** argv);

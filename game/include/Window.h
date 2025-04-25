@@ -49,7 +49,7 @@ private:
 
 private:
     GLFWwindow* m_Window;
-    Scope<CE::GraphicsContext> m_Context;
+    GA::Scope<CE::GraphicsContext> m_Context;
 
     struct WindowData{
         std::string Title;

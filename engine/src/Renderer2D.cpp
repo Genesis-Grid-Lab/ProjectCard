@@ -350,6 +350,90 @@ namespace CE {
 		DrawQuad(transform, texture, tilingFactor, tintColor);
 	}
 
+	void Renderer2D::DrawGlyph(const glm::mat4& transform,
+		const glm::vec2& uv0, const glm::vec2& uv1,
+		const Ref<Texture2D>& texture, float tilingFactor, 
+		const glm::vec4& tintColor, int entityID)
+	{
+		
+		constexpr size_t quadVertexCount = 4;
+		glm::vec2 textureCoords[] = {
+			{ uv0.x, uv0.y }, // bottom-left
+			{ uv1.x, uv0.y }, // bottom-right
+			{ uv1.x, uv1.y }, // top-right
+			{ uv0.x, uv1.y }  // top-left
+		};
+		
+		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+			NextBatch();
+		
+		float textureIndex = 0.0f;
+		for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
+		{
+			if (*s_Data.TextureSlots[i] == *texture)
+			{
+				textureIndex = (float)i;
+				break;
+			}
+		}
+
+		if (textureIndex == 0.0f)
+		{
+			if (s_Data.TextureSlotIndex >= Renderer2DData::MaxTextureSlots)
+				NextBatch();
+
+			textureIndex = (float)s_Data.TextureSlotIndex;
+			s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+			s_Data.TextureSlotIndex++;			
+		}
+
+		for (size_t i = 0; i < quadVertexCount; i++)
+		{
+			s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
+			s_Data.QuadVertexBufferPtr->Color = tintColor;
+			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
+			s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
+			s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+			s_Data.QuadVertexBufferPtr->EntityID = entityID;
+			s_Data.QuadVertexBufferPtr++;
+		}
+
+		s_Data.QuadIndexCount += 6;
+
+		s_Data.Stats.QuadCount++;
+	}
+
+
+	void Renderer2D::DrawText(const std::string& text, const glm::vec3& position, Ref<Font> font, const glm::vec4& color){
+		float x = position.x;
+		float y = position.y;
+
+		// GLuint texID = font.GetTextureID();
+
+		for (char c : text) {
+			if (c < 32 || c >= 128) continue;
+
+			stbtt_bakedchar* ch = &font->GetCharData()[c - 32];
+
+			float xpos = x + ch->xoff;
+			float ypos = y - ch->yoff;
+			float w = ch->x1 - ch->x0;
+			float h = ch->y1 - ch->y0;
+
+			glm::vec3 glyphPos = { xpos, ypos, position.z };
+			glm::vec2 glyphSize = { w, h };
+			glm::vec2 uv0 = { ch->x0 / 512.0f, ch->y0 / 512.0f }; // assumes 512x512 font atlas
+			glm::vec2 uv1 = { ch->x1 / 512.0f, ch->y1 / 512.0f };
+
+			glm::mat4 transform = glm::translate(glm::mat4(1.0f), glyphPos)
+			* glm::scale(glm::mat4(1.0f), { glyphSize.x, glyphSize.y, 1.0f });			
+
+			DrawGlyph(transform, uv0, uv1, font->GetTexture(),1.0f, color);			
+
+			x += ch->xadvance;
+		}
+	}
+
 	void Renderer2D::DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID)
 	{
 		if (src.Texture)
@@ -365,6 +449,10 @@ namespace CE {
 			DrawQuad(transform, src.Texture, 1.0f, {1, 1, 1, 1}, entityID);
 		else
 			DrawQuad(transform, src.Color, entityID);
+	}
+
+	void Renderer2D::DrawUI(const glm::vec3& position, TextUIComponent& src, int entityID){
+		DrawText(src.Text, position, src.Font, src.Color);
 	}
 	
     void Renderer2D::ResetStats()
