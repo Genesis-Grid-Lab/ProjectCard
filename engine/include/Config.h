@@ -7,6 +7,7 @@
 #include <functional>
 #include <array>
 #include <fstream>
+#include <cstdint>
 
 #include <string>
 #include <sstream>
@@ -40,18 +41,19 @@
 #define CE_EXPAND_MACRO(x) x
 #define CE_STRINGIFY_MACRO(x) #x
 
-// import, export
-#ifdef CE_EXPORT    
-    #ifdef _MSC_VER
+// Define CE_API for import/export depending on platform and usage
+#if defined(CE_PLATFORM_WINDOWS)
+    #ifdef CE_EXPORT
         #define CE_API __declspec(dllexport)
-    #else
-        #define CE_API __attribute__((visibility("default")))
-    #endif
-#endif
-
-#ifdef CE_IMPORT           
-    #ifdef _MSC_VER
+    #elif defined(CE_IMPORT)
         #define CE_API __declspec(dllimport)
+    #else
+        #define CE_API
+    #endif
+#else
+    // Linux/macOS: only need to set visibility when exporting
+    #ifdef CE_EXPORT
+        #define CE_API __attribute__((visibility("default")))
     #else
         #define CE_API
     #endif

@@ -102,7 +102,7 @@ namespace CE {
     	RenderCommand::Clear();
         
 		Renderer2D::BeginCamera(m_Cam);
-		ViewEntity<Entity, UIElement>([this] (auto& entity, auto& comp){
+		ViewEntity<Entity, UIElement>([this] (auto entity, auto& comp){
 
 			auto& transform = entity.template GetComponent<TransformComponent>();			
 			Renderer2D::DrawUI(transform.GetTransform(), comp);
@@ -115,7 +115,7 @@ namespace CE {
 			Renderer2D::DrawUI(transform.GetTransform(), ui, (int)entity);
 		}
 
-		ViewEntity<Entity, TextUIComponent>([this] (auto& entity, auto& comp){
+		ViewEntity<Entity, TextUIComponent>([this] (auto entity, auto& comp){
 
 			auto& transform = entity.template GetComponent<TransformComponent>();	
 			Renderer2D::DrawUI(transform.Translation, comp);		

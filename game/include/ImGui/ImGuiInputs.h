@@ -58,7 +58,7 @@
 }
 
 // shows button
- bool InputButton(const char* label, ImVec2& size = ImVec2(0,0)) 
+bool InputButton(const char* label, ImVec2& size) 
 {
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.0f, 1.0f, 1.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f);

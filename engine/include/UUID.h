@@ -1,6 +1,12 @@
 #pragma once
-
+//temp
+#define CE_PLATFORM_LINUX
+#ifdef CE_PLATFORM_WINDOWS
 #include <xhash>
+#elif defined(CE_PLATFORM_LINUX)
+#include <hashtable.h>
+#endif
+#include <cstdint>
 
 namespace CE {
 

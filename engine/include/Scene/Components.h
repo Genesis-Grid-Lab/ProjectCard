@@ -89,7 +89,7 @@ namespace CE {
 	};
 
 	struct TextUIComponent : public UIElement {
-		Ref<Font> Font;
+		Ref<Font> m_Font;
 		std::string Text;
 		TextUIComponent() = default;
 		TextUIComponent(const TextUIComponent&) = default;

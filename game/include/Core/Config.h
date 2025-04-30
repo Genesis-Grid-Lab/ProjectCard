@@ -5,6 +5,7 @@
 #include <sstream>
 #include <GLFW/glfw3.h>
 #include <queue>
+#include <algorithm>
 
 #define BIT(x) (1 << x)
 
