@@ -1,6 +1,5 @@
 #pragma once
-//temp
-#define CE_PLATFORM_LINUX
+#include "Config.h"
 #ifdef CE_PLATFORM_WINDOWS
 #include <xhash>
 #elif defined(CE_PLATFORM_LINUX)

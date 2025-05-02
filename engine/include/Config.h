@@ -43,12 +43,20 @@
 
 // Define CE_API for import/export depending on platform and usage
 #if defined(CE_PLATFORM_WINDOWS)
-    #ifdef CE_EXPORT
+    #ifdef CE_EXPORT    
+    #ifdef _MSC_VER
         #define CE_API __declspec(dllexport)
-    #elif defined(CE_IMPORT)
+    #else
+        #define CE_API __attribute__((visibility("default")))
+    #endif
+    #endif
+
+    #ifdef CE_IMPORT           
+    #ifdef _MSC_VER
         #define CE_API __declspec(dllimport)
     #else
         #define CE_API
+    #endif
     #endif
 #else
     // Linux/macOS: only need to set visibility when exporting
