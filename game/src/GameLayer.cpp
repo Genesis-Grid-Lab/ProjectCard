@@ -71,7 +71,7 @@ void GameLayer::CreateUI(){
     mAIBorder->PushComponent("AI3",Anchor::Right, {0,0}, AI3Tex , {50, 50});
 
     mPlayerBorder->PushComponent("PlayerIcon", Anchor::Left, {10, 0} , PlayerTex, {80, 80});  
-    mPlayerBorder->PushComponent("PlayerPoints", Anchor::Right, {-65, 0}, nullptr, {100, 80}, {1,0,1,1});
+    mPlayerBorder->PushComponent("PlayerPointsBack", Anchor::Right, {-65, 0}, nullptr, {100, 80}, {1,0,1,1});
     mPlayerBorder->PushButtonComponent("SettingsButton", Anchor::Right, {-10,0}, SettingsTex, {50, 80});  
     
 }
@@ -97,6 +97,9 @@ void GameLayer::OnUpdate(Timestep ts){
         m_Scene->OnUpdateRuntime(ts);   
         
         PlayerTurn();
+
+        mPlayerBorder->PushTextComponent("PlayerPoints", Anchor::Top,std::to_string(playerPoints),mFont,
+                                                             glm::vec4(1));
 
         ButtonLogic();
 
@@ -179,7 +182,16 @@ void GameLayer::PlayerTurn(){
 
                 if(hovered && !spotEmpty){
                     workingCard = card;
-                    mTable->AddSpotAndPushCard(card, mHand->GetCards(), PlayedCards);
+                    for(auto& spot : mTable->GetAllSpots()){
+                        if(spot->IsEmpty()){
+                            spot->PushCard(card, mHand->GetCards(), PlayedCards);
+                            break;
+                        }else{
+
+                            mTable->AddSpotAndPushCard(card, mHand->GetCards(), PlayedCards);
+                            break;
+                        }
+                    }
                     dropped = true;
                     m_TurnManager.Played = true;
                 }
@@ -250,10 +262,29 @@ void GameLayer::TakeButtonFnc(PlayerType player){
                 for(auto& card : spot->GetCards()){
                     
                     if(card == workingCard){
-                        spot->RemoveCard(card);                        
+                        spot->RemoveCard(card);      
+                        switch (player)
+                        {
+                        case PlayerType::Human:
+                            playerPoints++;
+                            break;
+                        
+                        default:
+                            break;
+                        }
+
                     }
                 }
-                spot->RemoveCard(spot->GetCards().front());                
+                spot->RemoveCard(spot->GetCards().front());  
+                switch (player)
+                {
+                case PlayerType::Human:
+                    playerPoints++;
+                    break;
+                
+                default:
+                    break;
+                }              
             }
         }        
     }
@@ -393,7 +424,7 @@ void GameLayer::RunAITurn(PlayerType aiTurn) {
                         TakeButtonFnc(PlayerType::AI1);
                         return;
                     }                    
-                }else{
+                }else{                    
                     spot->PushCard(PickBestCard(mAI2Hand->GetCards()), mAI2Hand->GetCards(), PlayedCards);
                     noSpot = false;
                     CE_INFO(" ai2 card PLAY: {0}", PickBestCard(mAI2Hand->GetCards())->GetValue());

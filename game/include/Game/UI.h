@@ -77,7 +77,7 @@ public:
 
         Entity comp = m_Scene->CreateEntity(name);
         auto& CTC = comp.GetComponent<TransformComponent>();
-        CTC.Translation = {compPos, 5};
+        CTC.Translation = {compPos, 6};
         CTC.Scale = {compSize, 1};
 
         auto& CUI = comp.AddComponent<TextUIComponent>();
