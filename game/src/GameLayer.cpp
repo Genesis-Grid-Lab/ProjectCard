@@ -50,7 +50,7 @@ void GameLayer::CreateUI(){
     mAIBorder = new Border(m_Scene, "AIBorder", {SCREEN_WIDTH / 2, 1150}, {SCREEN_WIDTH, 50});
     mButtonBorder = new Border(m_Scene, "ButtonBorder", {SCREEN_WIDTH / 2, 1230}, {SCREEN_WIDTH, 50});
 
-    auto& BackGround = m_Scene->CreateEntity("BackGround");
+    auto BackGround = m_Scene->CreateEntity("BackGround");
     BackGround.AddComponent<CE::UIElement>().Texture = BackTex;
     auto& BGTC = BackGround.GetComponent<CE::TransformComponent>();
     BGTC.Translation = {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0};
@@ -385,7 +385,7 @@ void GameLayer::RunAITurn(PlayerType aiTurn) {
                         return;
                     }                    
                 }else{                    
-                    spot->PushCard(PickBestCard(mAI1Hand->GetCards()), mAI1Hand->GetCards(), PlayedCards);
+                    // spot->PushCard(PickBestCard(mAI1Hand->GetCards()), mAI1Hand->GetCards(), PlayedCards);
                     noSpot = false;
                     CE_INFO(" ai1 card PLAY: {0}", PickBestCard(mAI1Hand->GetCards())->GetValue());
                     return;
@@ -394,7 +394,7 @@ void GameLayer::RunAITurn(PlayerType aiTurn) {
             }
 
             if(noSpot){
-                mTable->AddSpotAndPushCard(PickBestCard(mAI1Hand->GetCards()), mAI1Hand->GetCards(), PlayedCards);
+                // mTable->AddSpotAndPushCard(PickBestCard(mAI1Hand->GetCards()), mAI1Hand->GetCards(), PlayedCards);
                 CE_INFO(" ai1 card PLAY AND PSUH: {0}", PickBestCard(mAI1Hand->GetCards())->GetValue());
             }
             break;
@@ -434,7 +434,7 @@ void GameLayer::RunAITurn(PlayerType aiTurn) {
             }
 
             if(noSpot){
-                mTable->AddSpotAndPushCard(PickBestCard(mAI2Hand->GetCards()), mAI2Hand->GetCards(), PlayedCards);
+                // mTable->AddSpotAndPushCard(PickBestCard(mAI2Hand->GetCards()), mAI2Hand->GetCards(), PlayedCards);
                 CE_INFO(" ai2 card PLAY AND PUSH: {0}", PickBestCard(mAI2Hand->GetCards())->GetValue());
             }
             break;
@@ -465,7 +465,7 @@ void GameLayer::RunAITurn(PlayerType aiTurn) {
                         return;
                     }                    
                 }else{
-                    spot->PushCard(PickBestCard(mAI3Hand->GetCards()), mAI3Hand->GetCards(), PlayedCards);
+                    // spot->PushCard(PickBestCard(mAI3Hand->GetCards()), mAI3Hand->GetCards(), PlayedCards);
                     noSpot = false;
                     CE_INFO(" ai2 card PLAY: {0}", PickBestCard(mAI3Hand->GetCards())->GetValue());
                     return;
@@ -474,7 +474,7 @@ void GameLayer::RunAITurn(PlayerType aiTurn) {
             }
 
             if(noSpot){
-                mTable->AddSpotAndPushCard(PickBestCard(mAI3Hand->GetCards()), mAI3Hand->GetCards(), PlayedCards);
+                // mTable->AddSpotAndPushCard(PickBestCard(mAI3Hand->GetCards()), mAI3Hand->GetCards(), PlayedCards);
                 CE_INFO(" ai2 card PLAY AND PUSH: {0}", PickBestCard(mAI3Hand->GetCards())->GetValue());
             }
             break;

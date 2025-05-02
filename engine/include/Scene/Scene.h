@@ -26,7 +26,7 @@ namespace CE {
         void ViewEntity(Task&& task){
             // CE_CORE_ASSERT(std::is_base_of<Entity, Entt>::value, "error viewing entt");
             m_Registry.view<Comp>().each([this, &task] 
-            (auto entity, auto& comp) 
+            (const auto entity, auto& comp) 
             { 
                 // task(std::move(Entt(&m_Registry, entity)), comp);
                 task(std::move(Entt(entity, this)), comp);

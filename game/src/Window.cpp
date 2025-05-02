@@ -37,6 +37,8 @@ void Window::Init(const WindowProps& props){
         glfwSetErrorCallback(GLFWErrorCallback);
     }
 
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
     #if defined(G_DEBUG)
         if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);

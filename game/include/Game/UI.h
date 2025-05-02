@@ -82,7 +82,7 @@ public:
 
         auto& CUI = comp.AddComponent<TextUIComponent>();
         CUI.Text = text;
-        CUI.Font = font;
+        CUI.m_Font = font;
         CUI.Color = color;
     }
 

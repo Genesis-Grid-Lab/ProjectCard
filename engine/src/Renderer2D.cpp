@@ -60,6 +60,11 @@ namespace CE {
 	static Ref<VertexBuffer> ScreenVertexBuffer;
 	static Ref<VertexArray> ScreenVertexArray;
 
+  const uint32_t Renderer2DData::MaxQuads;
+  const uint32_t Renderer2DData::MaxVertices;
+  const uint32_t Renderer2DData::MaxIndices;
+  const uint32_t Renderer2DData::MaxTextureSlots;
+
     void Renderer2D::Init()
 	{			
 		s_Data.QuadVertexArray = CreateRef<VertexArray>();
@@ -134,7 +139,7 @@ namespace CE {
 			{ CE::ShaderDataType::Float2, "a_TexCoord" }
 		});
 		
-		auto& ib = CreateRef<IndexBuffer>(indices, 6);
+		const auto& ib = CreateRef<IndexBuffer>(indices, 6);
 		
 		ScreenVertexArray->AddVertexBuffer(ScreenVertexBuffer);
 		ScreenVertexArray->SetIndexBuffer(ib);
@@ -452,7 +457,7 @@ namespace CE {
 	}
 
 	void Renderer2D::DrawUI(const glm::vec3& position, TextUIComponent& src, int entityID){
-		DrawText(src.Text, position, src.Font, src.Color);
+		DrawText(src.Text, position, src.m_Font, src.Color);
 	}
 	
     void Renderer2D::ResetStats()
