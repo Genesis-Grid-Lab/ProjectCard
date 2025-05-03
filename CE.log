@@ -1,8 +1,0 @@
-[18:09:14] [info] Engine: Loading Application
-[18:09:14] [info] APP: Creating window Card Game (720, 1280)
-[18:09:19] [info] Engine: OpenGL Info:
-[18:09:19] [info] Engine:   Vendor: Intel
-[18:09:19] [info] Engine:   Renderer: Mesa Intel(R) HD Graphics 5000 (HSW GT3)
-[18:09:19] [info] Engine:   Version: 4.6 (Compatibility Profile) Mesa 25.0.4-arch1.1
-[18:09:43] [info] APP: New round dealt. Cards remaining: 32
-[18:09:53] [info] Engine: Shuting down

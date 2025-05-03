@@ -1,18 +1,8 @@
-#include "CardEngine.h"
-#include "Application.h"
+#include <UrbanEngine.h>
+#include <Core/EntryPoint.h>
+#include "GameApp.h"
 
-int main(int argc, char** argv){
-    
-    CE::Log::Init();
+UE::Application* UE::CreateApplication(UE::ApplicationCommandLineArgs args){
 
-    CE_CORE_INFO("Loading Application");
-
-    auto app = new Application("Card Game", {argc, argv});
-
-    app->Run();
-
-    CE_CORE_INFO("Shuting down");
-    delete app;
-
-    return 0;
+    return new GameApp(args);
 }

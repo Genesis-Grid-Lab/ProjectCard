@@ -7,24 +7,22 @@ add_executable(${PROJECT_NAME} ${sources} ${headers})
 
 # export engine symbols
 target_compile_definitions(${PROJECT_NAME} PUBLIC
-  -DCE_IMPORT -DCE_ENABLE_ASSERTS
+  -DUE_IMPORT -DUE_ENABLE_ASSERTS
 )
 
 # includes directories
 target_include_directories(${PROJECT_NAME} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/vendor/glfw/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include    
     ${CMAKE_SOURCE_DIR}/vendor/glm
-    ${CMAKE_SOURCE_DIR}/engine/include
+    ${CMAKE_SOURCE_DIR}/vendor/urban-engine/include
     ${CMAKE_SOURCE_DIR}/vendor/imgui
     ${CMAKE_SOURCE_DIR}/vendor/imgui/backends
 )
 
 # link libraries
-target_link_libraries(${PROJECT_NAME} PUBLIC     
-    glfw
+target_link_libraries(${PROJECT_NAME} PUBLIC         
     imgui
-    CardEngine
+    UrbanEngine
 )
 
 # copy data

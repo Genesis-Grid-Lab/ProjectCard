@@ -1,19 +1,19 @@
 #pragma once
-#include <CardEngine.h>
+#include <UrbanEngine.h>
 #include <filesystem>
 #include <string>
 #include <array>
 
-using namespace CE;
+using namespace UE;
 
 #define Card_width 80
 #define Card_height 120
 
 class Card {
 public:
-    Card(GA::Ref<Scene>& scene,const std::string& texture, int value)
+    Card(Ref<Scene>& scene,const std::string& texture, int value)
     : m_SceneRef(scene){
-        m_Tex = GA::CreateRef<Texture2D>(texture);
+        m_Tex = CreateRef<Texture2D>(texture);
         ID = scene->CreateEntity(trimPath(texture));
         ID.AddComponent<SpriteRendererComponent>().Texture = m_Tex;        
         m_Value = value;
@@ -39,13 +39,13 @@ public:
     int m_Value;
 private:
     Entity ID;
-    GA::Ref<Scene> m_SceneRef;
-    GA::Ref<Texture2D> m_Tex;
+    Ref<Scene> m_SceneRef;
+    Ref<Texture2D> m_Tex;
 };
 
 class Deck{
 public:
-    Deck(GA::Ref<Scene>& scene): m_SceneRef(scene){
+    Deck(Ref<Scene>& scene): m_SceneRef(scene){
         glm::vec2 Pos = {-80, -80};
 
         std::string resourcePath = "Resources/Cards/Standard/normal_cards/individual/";
@@ -56,19 +56,19 @@ public:
         for(int i = 1; i <= 13; i++){
 
             filePath = resourcePath + clubs + "/" + clubs + "_" + std::to_string(i) + ".png";
-            Cards.emplace_back(GA::CreateRef<Card>(scene, filePath, i));
+            Cards.emplace_back(CreateRef<Card>(scene, filePath, i));
             Cards.back()->TargetPos = {Pos, 3};
             Cards.back()->GetID().GetComponent<TransformComponent>().Scale = { Card_width, Card_height, 1};
             filePath = resourcePath + diamonds + "/" + diamonds + "_" + std::to_string(i) + ".png";
-            Cards.emplace_back(GA::CreateRef<Card>(scene, filePath, i));
+            Cards.emplace_back(CreateRef<Card>(scene, filePath, i));
             Cards.back()->TargetPos = {Pos, 3};
             Cards.back()->GetID().GetComponent<TransformComponent>().Scale = { Card_width, Card_height, 1};
             filePath = resourcePath + hearts + "/" + hearts + "_" + std::to_string(i) + ".png";
-            Cards.emplace_back(GA::CreateRef<Card>(scene, filePath, i));
+            Cards.emplace_back(CreateRef<Card>(scene, filePath, i));
             Cards.back()->TargetPos = {Pos, 3};
             Cards.back()->GetID().GetComponent<TransformComponent>().Scale = { Card_width, Card_height, 1};
             filePath = resourcePath + spades + "/" + spades + "_" + std::to_string(i) + ".png";
-            Cards.emplace_back(GA::CreateRef<Card>(scene, filePath, i));
+            Cards.emplace_back(CreateRef<Card>(scene, filePath, i));
             Cards.back()->TargetPos = {Pos, 3};
             Cards.back()->GetID().GetComponent<TransformComponent>().Scale = { Card_width, Card_height, 1};            
         }
@@ -77,16 +77,16 @@ public:
     ~Deck(){
     }
 
-    std::vector<GA::Ref<Card>> GetCards() { return Cards;}
+    std::vector<Ref<Card>> GetCards() { return Cards;}
 private:
-    std::vector<GA::Ref<Card>> Cards;
-    GA::Ref<Scene> m_SceneRef;
+    std::vector<Ref<Card>> Cards;
+    Ref<Scene> m_SceneRef;
 };
 
 
 class Spot {
 public:
-    Spot(GA::Ref<Scene> scene, glm::vec2 pos, glm::vec2 size)
+    Spot(Ref<Scene> scene, glm::vec2 pos, glm::vec2 size)
         : m_Scene(scene), m_Pos(pos)
     {
         ID = scene->CreateEntity("TableSpot");
@@ -98,7 +98,7 @@ public:
         m_Size = size;
     }
 
-    void PushCard(GA::Ref<Card>& card, std::vector<GA::Ref<Card>>& GameCards,std::vector<GA::Ref<Card>>& playedCards) {
+    void PushCard(Ref<Card>& card, std::vector<Ref<Card>>& GameCards,std::vector<Ref<Card>>& playedCards) {
         float yOffset = 15.0f; // vertical spacing between stacked cards
 
         glm::vec3 basePos = { m_Pos.x, m_Pos.y, 3.0f };
@@ -130,7 +130,7 @@ public:
         }
     }
 
-    void RemoveCard(GA::Ref<Card> card){   
+    void RemoveCard(Ref<Card> card){   
         card->TargetPos = {900, 1500, 3};
         m_Cards.erase(std::find(m_Cards.begin(), m_Cards.end(), card));        
         Reorder();
@@ -172,23 +172,23 @@ public:
         return m_Cards.empty();
     }
 
-    const std::vector<GA::Ref<Card>>& GetCards() const { return m_Cards; }
+    const std::vector<Ref<Card>>& GetCards() const { return m_Cards; }
 
     Entity GetID() const { return ID; }
 
 private:
     Entity ID;
-    GA::Ref<Scene> m_Scene;
+    Ref<Scene> m_Scene;
     glm::vec2 m_Pos;
     glm::vec2 m_Size;
 
-    std::vector<GA::Ref<Card>> m_Cards;
+    std::vector<Ref<Card>> m_Cards;
 };
 
 
 class Table {
     public:
-        Table(GA::Ref<Scene>& scene, glm::vec2& pos, glm::vec2& size)
+        Table(Ref<Scene>& scene, glm::vec2& pos, glm::vec2& size)
             : m_Pos(pos), m_Scene(scene),m_InitialSize(size) {
             ID = scene->CreateEntity("Table");
             ID.AddComponent<SpriteRendererComponent>().Color = {0, 0, 1, 1};
@@ -200,7 +200,7 @@ class Table {
     
         ~Table() {}
     
-        const std::vector<GA::Ref<Spot>>& GetAllSpots() const {
+        const std::vector<Ref<Spot>>& GetAllSpots() const {
             return mSpot;
         }
     
@@ -208,20 +208,20 @@ class Table {
             return (int)mSpot.size();
         }
     
-        GA::Ref<Spot> GetSpot(int place) {
+        Ref<Spot> GetSpot(int place) {
             return mSpot[place];
         }
     
-        void AddSpotAndPushCard(GA::Ref<Card>& card, 
-                            std::vector<GA::Ref<Card>>& GameCards,
-                            std::vector<GA::Ref<Card>>& playedCards) {
+        void AddSpotAndPushCard(Ref<Card>& card, 
+                            std::vector<Ref<Card>>& GameCards,
+                            std::vector<Ref<Card>>& playedCards) {
             glm::vec2 spotSize = { Card_width, Card_height };
             glm::ivec2 offset = GetSpotPatternOffset(mSpot.size());
             int row = offset.y;
 
             GrowHeightIfNeeded(row + 1); // Ensure enough height for this row
             glm::vec2 newSpotPos = m_Pos + glm::vec2((offset.x * (Card_width + 10.0f)) - 50, (offset.y * (Card_height + 10.0f)) - 55);
-            auto spot = GA::CreateRef<Spot>(m_Scene, newSpotPos, spotSize);
+            auto spot = CreateRef<Spot>(m_Scene, newSpotPos, spotSize);
             mSpot.push_back(spot);
             spot->PushCard(card, GameCards, playedCards);
             
@@ -255,8 +255,8 @@ class Table {
         }
     
     private:
-        std::vector<GA::Ref<Spot>> mSpot;
-        GA::Ref<Scene> m_Scene;
+        std::vector<Ref<Spot>> mSpot;
+        Ref<Scene> m_Scene;
         Entity ID;
         glm::vec2 m_Pos;
         glm::vec2 m_InitialSize;
@@ -265,7 +265,7 @@ class Table {
 class Hand {
 public:
     Hand() = default;
-    Hand(GA::Ref<Scene> scene, glm::vec2 position, glm::vec2 size, int maxCards = 4)
+    Hand(Ref<Scene> scene, glm::vec2 position, glm::vec2 size, int maxCards = 4)
     : m_Pos(position), m_Scene(scene), m_MaxCards(maxCards)
     {
         // Create background
@@ -280,7 +280,7 @@ public:
 
     ~Hand() = default;
 
-    void PushCard(GA::Ref<Card>& card, std::vector<GA::Ref<Card>>& GameCards,std::vector<GA::Ref<Card>>& playedCards, int slot) {        
+    void PushCard(Ref<Card>& card, std::vector<Ref<Card>>& GameCards,std::vector<Ref<Card>>& playedCards, int slot) {        
 
         card->OnHand = true;
         card->OnTable = false;
@@ -310,15 +310,15 @@ public:
         return { x, m_Pos.y, 2.0f };
     }
 
-    std::vector<GA::Ref<Card>>& GetCards() {
+    std::vector<Ref<Card>>& GetCards() {
         return m_Cards; 
     }
 
 private:
     Entity ID;
     glm::vec2 m_Pos;
-    GA::Ref<Scene> m_Scene;
-    std::vector<GA::Ref<Card>> m_Cards;
+    Ref<Scene> m_Scene;
+    std::vector<Ref<Card>> m_Cards;
     int m_MaxCards;
     friend class AIHand;
     

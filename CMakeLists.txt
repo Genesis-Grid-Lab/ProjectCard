@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # build output directories
@@ -16,23 +16,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_CXX_STANDARD 17)
 
-if(UNIX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-endif(UNIX)
-
 project(ProjectCard C CXX)
 
 # enable console logging
 
 if(${CMAKE_BUILD_TYPE} MATCHES Debug)
-    add_definitions(-DCE_DEBUG)
+    add_definitions(-DUE_DEBUG)
 endif(${CMAKE_BUILD_TYPE} MATCHES Debug)
 
-add_subdirectory(vendor/glfw)
-add_subdirectory(vendor/glad)
-add_subdirectory(vendor/glm)
-add_subdirectory(vendor/entt)
-add_subdirectory(vendor/imgui)
-add_subdirectory(vendor/spdlog)
-add_subdirectory(engine)
+
+add_subdirectory(vendor/urban-engine)
 add_subdirectory(game)

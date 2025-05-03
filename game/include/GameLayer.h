@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CardEngine.h>
+#include <UrbanEngine.h>
 #include "Core/Layer.h"
 #include "Core/Input.h"
 #include "Events/ApplicationEvent.h"
@@ -64,12 +64,12 @@ public:
     bool OnResize(WindowResizeEvent& e);
 
 private:
-    GA::Ref<CE::Scene> m_Scene;
-    CE::Entity m_HoveredEntity;
-    CE::Entity TakeButton;
-    CE::Entity BuildButton;
-    CE::Entity TrailButton;
-    CE::Entity UndoButton;
+    Ref<UE::Scene> m_Scene;
+    UE::Entity m_HoveredEntity;
+    UE::Entity TakeButton;
+    UE::Entity BuildButton;
+    UE::Entity TrailButton;
+    UE::Entity UndoButton;
     glm::vec3 OldPos;
     Border* mAIBorder;
     Border* mPlayerBorder;
@@ -80,17 +80,17 @@ private:
     AIHand *mAI1Hand;
     AIHand *mAI2Hand;
     AIHand *mAI3Hand;    
-    GA::Ref<CE::Texture2D> BackTex;
-    GA::Ref<CE::Texture2D> AI1Tex;
-    GA::Ref<CE::Texture2D> AI2Tex;
-    GA::Ref<CE::Texture2D> AI3Tex; 
-    GA::Ref<CE::Texture2D> PlayerTex; 
-    GA::Ref<CE::Texture2D> TakeTex; 
-    GA::Ref<CE::Texture2D> BuildTex; 
-    GA::Ref<CE::Texture2D> TrailTex; 
-    GA::Ref<CE::Texture2D> UndoTex; 
-    GA::Ref<CE::Texture2D> SettingsTex; 
-    GA::Ref<CE::Font> mFont;    
+    Ref<UE::Texture2D> BackTex;
+    Ref<UE::Texture2D> AI1Tex;
+    Ref<UE::Texture2D> AI2Tex;
+    Ref<UE::Texture2D> AI3Tex; 
+    Ref<UE::Texture2D> PlayerTex; 
+    Ref<UE::Texture2D> TakeTex; 
+    Ref<UE::Texture2D> BuildTex; 
+    Ref<UE::Texture2D> TrailTex; 
+    Ref<UE::Texture2D> UndoTex; 
+    Ref<UE::Texture2D> SettingsTex; 
+    Ref<UE::Font> mFont;    
 private:
     bool m_AITurnInProgress = false;
     float m_AITurnTimer = 0.0f;
@@ -98,11 +98,11 @@ private:
     TurnManager m_TurnManager;
     bool m_RoundInProgress = false;
     bool m_Paused = false;
-    std::vector<GA::Ref<Card>> GameCards;
-    std::vector<GA::Ref<Card>> PlayedCards;
+    std::vector<Ref<Card>> GameCards;
+    std::vector<Ref<Card>> PlayedCards;
     int selectedValue = 0;
     int spotValue = 0;
     int playerPoints = 0;
-    GA::Ref<Spot> workingSpot;
-    GA::Ref<Card> workingCard;
+    Ref<Spot> workingSpot;
+    Ref<Card> workingCard;
 };

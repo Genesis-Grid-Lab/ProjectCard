@@ -1,11 +1,11 @@
 #pragma once
 
-#include <CardEngine.h>
+#include <UrbanEngine.h>
 #include <vector>
 #include <string>
 #include <map>
 
-using namespace CE;
+using namespace UE;
 
 enum class Anchor {
     TopLeft, TopRight, BottomLeft, BottomRight,
@@ -20,7 +20,7 @@ struct AnchoredComponent {
 
 class Border {
 public:
-    Border(GA::Ref<Scene>& scene,const std::string& name, const glm::vec2& position, const glm::vec2& size)
+    Border(Ref<Scene>& scene,const std::string& name, const glm::vec2& position, const glm::vec2& size)
     :m_Position(position), m_Size(size), m_Scene(scene){
         ID = scene->CreateEntity(name);
         ID.AddComponent<SpriteRendererComponent>().Color =  { 0,0,1,1};
@@ -30,7 +30,7 @@ public:
     }
 
     void PushComponent(const std::string& name, Anchor anchor, const glm::vec2& offset = {0, 0},
-        GA::Ref<Texture2D> texture = nullptr, const glm::vec2& size = {0, 0}, const glm::vec4& color = glm::vec4(0)) {
+        Ref<Texture2D> texture = nullptr, const glm::vec2& size = {0, 0}, const glm::vec4& color = glm::vec4(0)) {
 
         glm::vec2 compSize = (size == glm::vec2(0)) ? m_Size : size;
         glm::vec2 compPos = GetAnchoredPosition(m_Position, m_Size, compSize, anchor, offset);
@@ -47,7 +47,7 @@ public:
     }
 
     void PushButtonComponent(const std::string& name, Anchor anchor, const glm::vec2& offset = {0,0},
-                            GA::Ref<Texture2D> texture = nullptr, const glm::vec2& size = {0,0},
+                            Ref<Texture2D> texture = nullptr, const glm::vec2& size = {0,0},
                             const glm::vec4& color = glm::vec4(0)){
 
         glm::vec2 compSize = (size == glm::vec2(0)) ? m_Size : size;
@@ -69,7 +69,7 @@ public:
         m_Components[name] = {comp, anchor, offset};
     }
 
-    void PushTextComponent(const std::string& name, Anchor anchor, const std::string& text,GA::Ref<Font> font,const glm::vec4& color = glm::vec4(1),
+    void PushTextComponent(const std::string& name, Anchor anchor, const std::string& text,Ref<Font> font,const glm::vec4& color = glm::vec4(1),
                 const glm::vec2& offset = {0,0}, const glm::vec2& size = {0,0}){
         
         glm::vec2 compSize = (size == glm::vec2(0)) ? m_Size : size;
@@ -153,5 +153,5 @@ private:
     // std::vector<AnchoredComponent> m_Components;
     std::map<std::string, AnchoredComponent> m_Components;
     glm::vec2 m_Position, m_Size;
-    GA::Ref<Scene> m_Scene;
+    Ref<Scene> m_Scene;
 };
