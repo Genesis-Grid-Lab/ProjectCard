@@ -12,16 +12,15 @@ using namespace UE;
 
 class TestLayer : public Layer {
 public:
-    TestLayer(){
-
-    }
+    TestLayer(const glm::vec2& size) : m_Size(size){}
+    
     virtual ~TestLayer() = default;
 
     virtual void OnAttach() override{    
 
         m_Tex = CreateRef<UE::Texture2D>("Resources/Textures/Checkerboard.png");
         m_Tex2 = CreateRef<UE::Texture2D>("Resources/Textures/board.png");
-        m_Scene = CreateRef<UE::Scene>(SCREEN_WIDTH, SCREEN_HEIGHT);        
+        m_Scene = CreateRef<UE::Scene>(m_Size.x, m_Size.y);        
         
         //entity        
         auto& button = m_Scene->CreateEntity("Button");
@@ -120,4 +119,5 @@ private:
     Ref<UE::Texture2D> m_Tex;
     Ref<UE::Texture2D> m_Tex2;
     Ref<UE::Scene> m_Scene;
+    glm::vec2 m_Size;
 };

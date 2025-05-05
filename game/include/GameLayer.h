@@ -1,9 +1,7 @@
 #pragma once
 
 #include <UrbanEngine.h>
-#include "Core/Layer.h"
-#include "Core/Input.h"
-#include "Events/ApplicationEvent.h"
+
 #include "Config.h"
 #include "Game/Card.h"
 #include "Game/UI.h"
