@@ -59,8 +59,8 @@ void main() {
     // if (texColor.a == 0.0) // or texColor.rgb == vec3(0)
     //     texColor = vec4(1.0); // fallback to white
 
-    if(texColor.rgb == vec3(0))
-        texColor = vec4(1.0);
+    // if(texColor.rgb == vec3(0))
+    //     texColor = vec4(1.0);
     FragColor = vec4(lighting, 1.0) * texColor;
     // FragColor = vec4(lighting, 1.0);
     // FragColor = vec4(1.0, 1.0, 0.2, 1.0);
