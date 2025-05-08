@@ -1,5 +1,5 @@
 #include "GameLayer.h"
-#include "ImGui/ImGuiInputs.h"
+// #include "ImGui/ImGuiInputs.h"
 #include <random>
 #include "Game/InGameMenuLayer.h"
 
@@ -528,66 +528,66 @@ void GameLayer::StartGame(){
 }
 
 void GameLayer::OnImGuiRender(){
-    ImGui::SetCurrentContext(UE::Application::Get().GetImGuiLayer()->GetContext());
-    ImGui::Begin("Stats");
+    // ImGui::SetCurrentContext(UE::Application::Get().GetImGuiLayer()->GetContext());
+    // ImGui::Begin("Stats");
         
-		std::string name = "None";
-        int index = 0;
-        // if (m_HoveredEntity){
-		// 	name = m_HoveredEntity.GetComponent<CE::TagComponent>().Tag;
-        //     index = m_HoveredEntity.GetComponent<UE::TransformComponent>().Translation.z;
-        // }
-		ImGui::Text("Hovered Entity: %s", name.c_str());
-        auto stats = UE::Renderer2D::GetStats();
-		ImGui::Text("Renderer2D Stats:");
-		ImGui::Text("Draw Calls: %d", stats.DrawCalls);
-		ImGui::Text("Quads: %d", stats.QuadCount);
-		ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
-		ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
-        // ImGui::Text("selected: %i", mCard->Selected);
-        ImGui::Text("index: %d", index);        
-        if (m_ShowAITurnText) {
-            ImGui::Begin("Turn Info");
-            ImGui::Text("AI %d is thinking...", (int)m_TurnManager.Current);
-            ImGui::End();
-        }
+	// 	std::string name = "None";
+    //     int index = 0;
+    //     // if (m_HoveredEntity){
+	// 	// 	name = m_HoveredEntity.GetComponent<CE::TagComponent>().Tag;
+    //     //     index = m_HoveredEntity.GetComponent<UE::TransformComponent>().Translation.z;
+    //     // }
+	// 	ImGui::Text("Hovered Entity: %s", name.c_str());
+    //     auto stats = UE::Renderer2D::GetStats();
+	// 	ImGui::Text("Renderer2D Stats:");
+	// 	ImGui::Text("Draw Calls: %d", stats.DrawCalls);
+	// 	ImGui::Text("Quads: %d", stats.QuadCount);
+	// 	ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
+	// 	ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
+    //     // ImGui::Text("selected: %i", mCard->Selected);
+    //     ImGui::Text("index: %d", index);        
+    //     if (m_ShowAITurnText) {
+    //         ImGui::Begin("Turn Info");
+    //         ImGui::Text("AI %d is thinking...", (int)m_TurnManager.Current);
+    //         ImGui::End();
+    //     }
 
-    ImGui::End();
-    ImGui::Begin("Game");
-    ImGui::Text("Selected Value: %d", selectedValue);
-    ImGui::Text("Spot Value: %d", spotValue);
-    ImGui::Text("Current turn: %d", (int)m_TurnManager.Current);
-        ImGui::Text("AI1:");
-        ImGui::Text("Number of Cards: %d",mAI1Hand->GetCards().size());
-        for(auto card : mAI1Hand->GetCards()){            
-            ImGui::Text("Card: %d", card->m_Value);
-        }
-        ImGui::Separator();
-        ImGui::Text("AI2:");
-        ImGui::Text("Number of Cards: %d",mAI2Hand->GetCards().size());
-        for(auto card : mAI2Hand->GetCards()){
+    // ImGui::End();
+    // ImGui::Begin("Game");
+    // ImGui::Text("Selected Value: %d", selectedValue);
+    // ImGui::Text("Spot Value: %d", spotValue);
+    // ImGui::Text("Current turn: %d", (int)m_TurnManager.Current);
+    //     ImGui::Text("AI1:");
+    //     ImGui::Text("Number of Cards: %d",mAI1Hand->GetCards().size());
+    //     for(auto card : mAI1Hand->GetCards()){            
+    //         ImGui::Text("Card: %d", card->m_Value);
+    //     }
+    //     ImGui::Separator();
+    //     ImGui::Text("AI2:");
+    //     ImGui::Text("Number of Cards: %d",mAI2Hand->GetCards().size());
+    //     for(auto card : mAI2Hand->GetCards()){
             
-            ImGui::Text("Card: %d", card->m_Value);
-        }
-        ImGui::Separator();
-        ImGui::Text("AI3:");
-        ImGui::Text("Number of Cards: %d",mAI3Hand->GetCards().size());
-        for(auto card : mAI3Hand->GetCards()){
+    //         ImGui::Text("Card: %d", card->m_Value);
+    //     }
+    //     ImGui::Separator();
+    //     ImGui::Text("AI3:");
+    //     ImGui::Text("Number of Cards: %d",mAI3Hand->GetCards().size());
+    //     for(auto card : mAI3Hand->GetCards()){
             
-            ImGui::Text("Card: %d", card->m_Value);
-        }
-        ImGui::Separator();
-        ImGui::Text("Player:");
-        ImGui::Text("Number of Cards: %d", mHand->GetCards().size());
-        for(auto card : mHand->GetCards()){
+    //         ImGui::Text("Card: %d", card->m_Value);
+    //     }
+    //     ImGui::Separator();
+    //     ImGui::Text("Player:");
+    //     ImGui::Text("Number of Cards: %d", mHand->GetCards().size());
+    //     for(auto card : mHand->GetCards()){
             
-            ImGui::Text("Card: %d", card->m_Value);
-        }
-        ImGui::Separator();
-        ImGui::Text("Game:");
-        ImGui::Text("Number of GameCards: %d",GameCards.size());
-        ImGui::Text("Number of PlayedCards: %d",PlayedCards.size());
-    ImGui::End();
+    //         ImGui::Text("Card: %d", card->m_Value);
+    //     }
+    //     ImGui::Separator();
+    //     ImGui::Text("Game:");
+    //     ImGui::Text("Number of GameCards: %d",GameCards.size());
+    //     ImGui::Text("Number of PlayedCards: %d",PlayedCards.size());
+    // ImGui::End();
 }
 
 void GameLayer::OnEvent(Event& e){
