@@ -6,6 +6,8 @@ layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexCoord;
 layout(location = 3) in vec3 a_Tangent;
 layout(location = 4) in vec3 a_Bitangent;
+layout(location = 5) in ivec4 a_BoneIds; 
+layout(location = 6) in vec4 a_Weights;
 
 out VS_OUT {
     vec3 FragPos;
@@ -22,11 +24,27 @@ uniform mat4 u_Projection;
 uniform vec3 u_LightPos;
 uniform vec3 u_ViewPos;
 
+const int MAX_BONES = 100;
+const int MAX_BONE_INFLUENCE = 4;
+uniform mat4 u_FinalBonesMatrices[MAX_BONES];
+
 void main()
 {
     vs_out.FragPos = vec3(u_Model * vec4(a_Position, 1.0));   
     vs_out.TexCoords = a_TexCoord;
     
+    // vec3 skinnedNormal = vec3(0.0);
+    // vec3 skinnedTangent = vec3(0.0);
+    // for(int i = 0; i < MAX_BONE_INFLUENCE; i++)
+    // {
+    //     if (a_BoneIds[i] == -1) continue;
+    //     if (a_BoneIds[i] >= MAX_BONES) break;
+    //     mat4 boneMatrix = u_FinalBonesMatrices[a_BoneIds[i]];
+    //     skinnedNormal += mat3(boneMatrix) * a_Normal * a_Weights[i];
+    //     skinnedTangent += mat3(boneMatrix) * a_Tangent * a_Weights[i];
+    // }
+    // vec3 N = normalize(skinnedNormal);
+    // vec3 T = normalize(skinnedTangent - dot(skinnedTangent, N) * N);
     mat3 normalMatrix = transpose(inverse(mat3(u_Model)));
     vec3 T = normalize(normalMatrix * a_Tangent);
     vec3 N = normalize(normalMatrix * a_Normal);
@@ -37,8 +55,26 @@ void main()
     vs_out.TangentLightPos = TBN * u_LightPos;
     vs_out.TangentViewPos  = TBN * u_ViewPos;
     vs_out.TangentFragPos  = TBN * vs_out.FragPos;
+
+     vec4 totalPosition = vec4(0.0f);
+    for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
+    {
+        if(a_BoneIds[i] == -1) 
+            continue;
+        if(a_BoneIds[i] >=MAX_BONES) 
+        {
+            totalPosition = vec4(a_Position,1.0f);
+            break;
+        }
+        vec4 localPosition = u_FinalBonesMatrices[a_BoneIds[i]] * vec4(a_Position,1.0f);
+        totalPosition += localPosition * a_Weights[i];
+        vec3 localNormal = mat3(u_FinalBonesMatrices[a_BoneIds[i]]) * a_Normal;
+   }
+
+    if (length(totalPosition.xyz) < 0.001)
+        totalPosition = vec4(a_Position, 1.0);
         
-    gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);
+    gl_Position = u_Projection * u_View * u_Model * totalPosition;
 }
 
 #type fragment

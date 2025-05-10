@@ -12,44 +12,55 @@ public:
     ModelTestLayer(const glm::vec2& size) : Layer("Model Test"), m_Size(size) {}
 
     void OnAttach() override {
-        // float aspect = m_Size.x / m_Size.y;
-        mCam = Camera3D(m_Size, Pos);
-        mCam2 = Camera2D(0.0f, m_Size.x, m_Size.y, 0.0f);          
-        // mCam.SetPosition(Pos);
-        mManModel = CreateRef<Model>("Resources/FinalBaseMesh.obj");
+        // float aspect = m_Size.x / m_Size.y;         
+        m_Scene = CreateRef<Scene>(m_Size.x, m_Size.y);
+
+        // mManModel = CreateRef<Model>("Resources/Hip Hop Dancing.fbx");
+        mManModel = CreateRef<Model>("Resources/dancing_vampire.dae");
+        // danceAnimation = Animation("Resources/Hip Hop Dancing.fbx", &mManModel);
+        danceAnimation = CreateRef<Animation>("Resources/dancing_vampire.dae", &mManModel);
+        animator = CreateRef<Animator>();
         mCubeModel = CreateRef<Model>("Resources/cube.fbx");
         mSphereModel = CreateRef<Model>("Resources/sphere.fbx");
-        mModel = CreateRef<Model>("Resources/backpack/backpack.obj");
-        mShader = CreateRef<Shader>("Data/Shaders/model.glsl");
-        m_LightPos = { 3.0f, 5.0f, 2.0f };
+        mModel = CreateRef<Model>("Resources/backpack/backpack.obj");  
+
+        auto& ManEntity = m_Scene->CreateEntity("Vampire");
+        auto& ManModel = ManEntity.AddComponent<ModelComponent>();
+        ManModel.ModelData = mManModel;
+        ManModel.AnimationData = danceAnimation;
+        auto& ManTC = ManEntity.GetComponent<TransformComponent>();
+        ManTC.Translation = {-5,0,0};
+        // ManTC.Scale = glm::vec3(1.0f);
+
+        auto& CubeEntity = m_Scene->CreateEntity("Cube");
+        CubeEntity.AddComponent<ModelComponent>().ModelData = mCubeModel;
+        auto& CubeTC = CubeEntity.GetComponent<TransformComponent>();
+        CubeTC.Translation = {5,0,0};
+
+        auto& SphereEntity = m_Scene->CreateEntity("Sphere");
+        SphereEntity.AddComponent<ModelComponent>().ModelData = mSphereModel;
+        auto& SphereTC = SphereEntity.GetComponent<TransformComponent>();
+        SphereTC.Translation = {0, 0, -5};
+
+        auto& BackEntity = m_Scene->CreateEntity("Backpack");
+        BackEntity.AddComponent<ModelComponent>().ModelData = mModel;
+        auto& BackTC = BackEntity.GetComponent<TransformComponent>();
+        BackTC.Translation = {0, 1, 0};
+
         cubePos = {0.0f, -2.0f, 0.0f};
         cubeSize = {50, 1, 50};
+        auto& floorEntity = m_Scene->CreateEntity("Floor");
+        floorEntity.AddComponent<CubeComponent>().Color = {0.5f, 0.0f, 0.5f};
+        auto& FloorTC = floorEntity.GetComponent<TransformComponent>();
+        FloorTC.Translation = cubePos;
+        FloorTC.Scale = cubeSize;                
     }
 
     void OnUpdate(Timestep ts) override {
 
-        RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
-    	RenderCommand::Clear();
-
-        Renderer3D::BeginCamera(mCam);
-
-        Renderer3D::DrawModel(mModel, {0,1,0});
-        Renderer3D::DrawModel(mCubeModel, {5,0,0});
-        Renderer3D::DrawModel(mManModel, {-5,0,0}, glm::vec3(1),{0.2f, 0.6f, 0.0f});
-        Renderer3D::RenderLight({5.5f, 5.0f, 0.3f });
-        Renderer3D::DrawCube(cubePos, cubeSize, {0.5f, 0.0f, 0.5f});
-        Renderer3D::DrawModel(mSphereModel, {0, 0, -5});
-
-        mCam.ProcessInputAndMouse(ts);
-
-        Renderer3D::EndCamera();
-
-        Renderer2D::BeginCamera(mCam2);
-
-        // Renderer2D::DrawQuad({100, 100}, {30, 30}, {1, 0, 0, 1});        
-
-        Renderer2D::EndCamera();
-
+        UE::Renderer2D::ResetStats();
+        m_Scene->OnUpdateRuntime(ts);           
+        m_Scene->OnMouseInput(Input::GetMouseX(), Input::GetMouseY(), Input::IsMouseButtonPressed(0), ts);        
         
     }
 
@@ -74,16 +85,29 @@ public:
         
     }
     
+    void OnEvent(Event& e) override{
+        EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(ModelTestLayer::OnResize));
+    }
+
+    bool OnResize(WindowResizeEvent& e){
+        m_Scene->OnViewportResize(e.GetWidth(), e.GetHeight());
+
+        return false;
+    }
 private:
     Ref<Shader> mShader;
     Ref<Model> mModel;
     Ref<Model> mSphereModel;
     Ref<Model> mCubeModel;
     Ref<Model> mManModel;
+    Ref<Animation> danceAnimation;
+    Ref<Animator> animator;
     Camera3D mCam;
     Camera2D mCam2;     
     glm::vec2 m_Size;
     glm::vec3 m_LightPos;
     glm::vec3 cubeSize, cubePos;
     glm::vec3 Pos = {0.0f, 1.0f, 5.0f};
+    Ref<Scene> m_Scene;
 };
