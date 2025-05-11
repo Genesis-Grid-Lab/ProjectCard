@@ -15,22 +15,43 @@ public:
         // float aspect = m_Size.x / m_Size.y;         
         m_Scene = CreateRef<Scene>(m_Size.x, m_Size.y);
 
-        // mManModel = CreateRef<Model>("Resources/Hip Hop Dancing.fbx");
-        mManModel = CreateRef<Model>("Resources/dancing_vampire.dae");
-        // danceAnimation = Animation("Resources/Hip Hop Dancing.fbx", &mManModel);
-        danceAnimation = CreateRef<Animation>("Resources/dancing_vampire.dae", &mManModel);
-        animator = CreateRef<Animator>();
+        mManModel = CreateRef<Model>("Resources/FinalBaseMesh.fbx");
+        // mManModel = CreateRef<Model>("Resources/dancing_vampire.dae");
+        danceAnimation = CreateRef<Animation>("Resources/FinalBaseMesh.fbx", mManModel);
+        // danceAnimation = CreateRef<Animation>("Resources/dancing_vampire.dae", mManModel);
         mCubeModel = CreateRef<Model>("Resources/cube.fbx");
         mSphereModel = CreateRef<Model>("Resources/sphere.fbx");
         mModel = CreateRef<Model>("Resources/backpack/backpack.obj");  
-
+        
         auto& ManEntity = m_Scene->CreateEntity("Vampire");
+        auto& ManTC = ManEntity.GetComponent<TransformComponent>();
+        auto& physTes = ManEntity.AddComponent<RigidbodyComponent>();
+        physx::PxMaterial* Material = nullptr;
+        glm::vec3 HalfExtents = glm::vec3(0.5f);
+
+        physx::PxTransform pxTransform(
+            physx::PxVec3(ManTC.Translation.x, ManTC.Translation.y, ManTC.Translation.z)
+            // physx::PxQuat(transform.Rotation.x, transform.Rotation.y, transform.Rotation.z, 0.0f)
+        );
+
+        physTes.Body = m_Scene->m_Physics3D.GetPhysics()->createRigidDynamic(pxTransform);
+
+        if (!Material)
+            Material = m_Scene->m_Physics3D.GetPhysics()->createMaterial(0.5f, 0.5f, 0.6f);
+
+        physx::PxShape* shape = m_Scene->m_Physics3D.GetPhysics()->createShape(
+            physx::PxBoxGeometry(HalfExtents.x, HalfExtents.y, HalfExtents.z),
+            *Material
+        );
+    
+        physTes.Body->attachShape(*shape);
+        m_Scene->m_Physics3D.GetScene()->addActor(*physTes.Body);
         auto& ManModel = ManEntity.AddComponent<ModelComponent>();
         ManModel.ModelData = mManModel;
         ManModel.AnimationData = danceAnimation;
-        auto& ManTC = ManEntity.GetComponent<TransformComponent>();
+        // ManModel.AnimationData->SetModel(ManModel.ModelData);
         ManTC.Translation = {-5,0,0};
-        // ManTC.Scale = glm::vec3(1.0f);
+        ManTC.Scale = glm::vec3(0.25f);
 
         auto& CubeEntity = m_Scene->CreateEntity("Cube");
         CubeEntity.AddComponent<ModelComponent>().ModelData = mCubeModel;
@@ -82,6 +103,15 @@ public:
         InputVec3("Cube Size", &cubeSize);
         
 		ImGui::End();
+
+        ImGui::Begin("physics Debug");
+
+        m_Scene->ViewEntity<Entity, RigidbodyComponent>([this](auto entity, auto& comp){
+            auto& transform = entity.template GetComponent<TransformComponent>();
+            InputVec3("Rigid Pos", &transform.Translation);
+        });
+
+        ImGui::End();
         
     }
     
@@ -101,8 +131,7 @@ private:
     Ref<Model> mSphereModel;
     Ref<Model> mCubeModel;
     Ref<Model> mManModel;
-    Ref<Animation> danceAnimation;
-    Ref<Animator> animator;
+    Ref<Animation> danceAnimation;    
     Camera3D mCam;
     Camera2D mCam2;     
     glm::vec2 m_Size;

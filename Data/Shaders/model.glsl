@@ -8,6 +8,7 @@ layout(location = 3) in vec3 a_Tangent;
 layout(location = 4) in vec3 a_Bitangent;
 layout(location = 5) in ivec4 a_BoneIds; 
 layout(location = 6) in vec4 a_Weights;
+layout(location = 7) in int a_EntityID;
 
 out VS_OUT {
     vec3 FragPos;
@@ -28,10 +29,15 @@ const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 u_FinalBonesMatrices[MAX_BONES];
 
+layout (location = 7) out flat int v_EntityID;
+uniform int u_EntityID;
+
 void main()
 {
     vs_out.FragPos = vec3(u_Model * vec4(a_Position, 1.0));   
     vs_out.TexCoords = a_TexCoord;
+    // v_EntityID = a_EntityID;
+    v_EntityID = u_EntityID;
     
     // vec3 skinnedNormal = vec3(0.0);
     // vec3 skinnedTangent = vec3(0.0);
@@ -80,7 +86,8 @@ void main()
 #type fragment
 #version 450 core
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out int color2;
 
 in VS_OUT {
     vec3 FragPos;
@@ -99,6 +106,8 @@ uniform vec3 u_Color;
 
 uniform bool u_UseNormalMap;
 uniform bool u_UseDiffuseMap;
+
+layout (location = 7) in flat int v_EntityID;
 
 void main()
 {
@@ -141,4 +150,5 @@ void main()
     vec3 specular = vec3(0.2) * spec;
     
     FragColor = vec4(ambient + diffuse + specular, 1.0);
+    color2 = v_EntityID;
 }
