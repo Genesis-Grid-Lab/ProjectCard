@@ -26,4 +26,5 @@ endif(${CMAKE_BUILD_TYPE} MATCHES Debug)
 
 
 add_subdirectory(vendor/urban-engine)
-add_subdirectory(game)
+# add_subdirectory(game)
+add_subdirectory(EbonyEditor)
