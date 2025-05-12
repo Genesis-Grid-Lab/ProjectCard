@@ -13,7 +13,7 @@ class Card {
 public:
     Card(Ref<Scene>& scene,const std::string& texture, int value)
     : m_SceneRef(scene){
-        m_Tex = CreateRef<Texture2D>(texture);
+        m_Tex = Texture2D::Create(texture);
         ID = scene->CreateEntity(trimPath(texture));
         ID.AddComponent<SpriteRendererComponent>().Texture = m_Tex;        
         m_Value = value;

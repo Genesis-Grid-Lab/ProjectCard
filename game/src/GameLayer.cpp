@@ -34,16 +34,16 @@ void GameLayer::OnAttach(){
 }
 
 void GameLayer::CreateUI(){
-    BackTex = CreateRef<UE::Texture2D>("Resources/Cards/Backgrounds/background_3.png");    
-    AI1Tex = CreateRef<UE::Texture2D>("Resources/Cards/Characters/char_1.png");    
-    AI2Tex = CreateRef<UE::Texture2D>("Resources/Cards/Characters/char_2.png");    
-    AI3Tex = CreateRef<UE::Texture2D>("Resources/Cards/Characters/char_3.png");    
-    PlayerTex = CreateRef<UE::Texture2D>("Resources/Cards/Characters/char_12.png");   
-    TakeTex = CreateRef<UE::Texture2D>("Resources/takeimg.png");
-    BuildTex = CreateRef<UE::Texture2D>("Resources/buildimg.png");
-    TrailTex = CreateRef<UE::Texture2D>("Resources/trail.png");
-    UndoTex = CreateRef<UE::Texture2D>("Resources/undoimg.png"); 
-    SettingsTex = CreateRef<UE::Texture2D>("Resources/settingimgpng.png"); 
+    BackTex = UE::Texture2D::Create("Resources/Cards/Backgrounds/background_3.png");    
+    AI1Tex = UE::Texture2D::Create("Resources/Cards/Characters/char_1.png");    
+    AI2Tex = UE::Texture2D::Create("Resources/Cards/Characters/char_2.png");    
+    AI3Tex = UE::Texture2D::Create("Resources/Cards/Characters/char_3.png");    
+    PlayerTex = UE::Texture2D::Create("Resources/Cards/Characters/char_12.png");   
+    TakeTex = UE::Texture2D::Create("Resources/takeimg.png");
+    BuildTex = UE::Texture2D::Create("Resources/buildimg.png");
+    TrailTex = UE::Texture2D::Create("Resources/trail.png");
+    UndoTex = UE::Texture2D::Create("Resources/undoimg.png"); 
+    SettingsTex = UE::Texture2D::Create("Resources/settingimgpng.png"); 
     mFont = CreateRef<UE::Font>("Data/Fonts/fa-solid-900.ttf");
 
     mPlayerBorder = new Border(m_Scene, "PlayerBorder", {SCREEN_WIDTH / 2, 40}, {SCREEN_WIDTH, 80});

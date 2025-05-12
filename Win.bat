@@ -2,7 +2,7 @@
 
 rem output directory
 
-set target="Build\%1"
+set target="Targets\%1"
 
 rem generate cmake build files
 

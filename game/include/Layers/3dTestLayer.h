@@ -74,7 +74,18 @@ public:
         floorEntity.AddComponent<CubeComponent>().Color = {0.5f, 0.0f, 0.5f};
         auto& FloorTC = floorEntity.GetComponent<TransformComponent>();
         FloorTC.Translation = cubePos;
-        FloorTC.Scale = cubeSize;                
+        FloorTC.Scale = cubeSize;  
+        
+        auto& uiTest = m_Scene->CreateEntity("UI");
+        auto& CTC = uiTest.GetComponent<TransformComponent>();
+        CTC.Translation = {100, 100, 5};
+        CTC.Scale = {10, 10, 1};
+        auto& CUI = uiTest.AddComponent<ButtonComponent>();
+        CUI.Color = {1, 0, 0, 1};
+        CUI.OriginalScale = CTC.Scale;
+        CUI.TargetScale = CTC.Scale;
+        CUI.BaseColor = {1, 1, 0, 1};
+        CUI.CurrentColor = {1, 0, 0, 1};
     }
 
     void OnUpdate(Timestep ts) override {
