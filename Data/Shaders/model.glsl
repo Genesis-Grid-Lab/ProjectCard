@@ -29,7 +29,7 @@ const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 u_FinalBonesMatrices[MAX_BONES];
 
-layout (location = 7) out flat int v_EntityID;
+layout (location = 4) out flat int v_EntityID;
 uniform int u_EntityID;
 
 void main()
@@ -107,7 +107,7 @@ uniform vec3 u_Color;
 uniform bool u_UseNormalMap;
 uniform bool u_UseDiffuseMap;
 
-layout (location = 7) in flat int v_EntityID;
+layout (location = 4) in flat int v_EntityID;
 
 void main()
 {
@@ -150,5 +150,6 @@ void main()
     vec3 specular = vec3(0.2) * spec;
     
     FragColor = vec4(ambient + diffuse + specular, 1.0);
+    
     color2 = v_EntityID;
 }
