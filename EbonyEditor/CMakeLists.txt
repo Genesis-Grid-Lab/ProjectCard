@@ -2,7 +2,7 @@ project(EbonyEditor;)
 
 # gather all source files
 file(GLOB_RECURSE sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-file(GLOB_RECURSE headers ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h)
+file(GLOB_RECURSE headers ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 add_executable(${PROJECT_NAME} ${sources} ${headers})
 
 # export engine symbols

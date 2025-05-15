@@ -5,16 +5,37 @@
 EditorLayer::EditorLayer(const glm::vec2& size): m_Size(size) {}
 
 void EditorLayer::OnAttach(){
+    console.AddLog("Starting");
     m_ActiveScene = CreateRef<Scene>(m_Size.x, m_Size.y);
     m_SceneHierarchyPanel = SceneHierarchyPanel(m_ActiveScene);
-    m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
-    glm::vec3 cubePos = {0.0f, -2.0f, 0.0f};
-    glm::vec3 cubeSize = {50, 1, 50};
-    auto& floorEntity = m_ActiveScene->CreateEntity("Floor");
-    floorEntity.AddComponent<CubeComponent>().Color = {0.5f, 0.0f, 0.5f};
-    auto& FloorTC = floorEntity.GetComponent<TransformComponent>();
-    FloorTC.Translation = cubePos;
-    FloorTC.Scale = cubeSize;
+    m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 2000.0f);
+
+    auto commandLineArgs = Application::Get().GetCommandLineArgs();
+    if(commandLineArgs.Count > 1){
+
+        auto sceneFilePath = commandLineArgs[1];
+        SceneSerializer serializer(m_ActiveScene);
+        serializer.Deserialize(sceneFilePath);
+    }
+
+    console.AddLog("Loading Resources");
+    Ref<Model> castle = CreateRef<Model>("Resources/sponza/sponza.obj");    
+
+    console.AddLog("Creating entity");
+    // glm::vec3 cubePos = {0.0f, -2.0f, 0.0f};
+    // glm::vec3 cubeSize = {50, 1, 50};
+    // auto& floorEntity = m_ActiveScene->CreateEntity("Floor");
+    // floorEntity.AddComponent<CubeComponent>().Color = {0.5f, 0.0f, 0.5f};
+    // auto& FloorTC = floorEntity.GetComponent<TransformComponent>();
+    // FloorTC.Translation = cubePos;
+    // FloorTC.Scale = cubeSize;
+
+    auto& castleEntt = m_ActiveScene->CreateEntity("Castle");
+    castleEntt.AddComponent<ModelComponent>().ModelData = castle;
+    auto& ctc = castleEntt.GetComponent<TransformComponent>();
+    ctc.Translation = {0,0,0};
+    ctc.Scale = glm::vec3(0.5f);
+    console.AddLog("Done Creating entity");
 }
 
 void EditorLayer::OnUpdate(Timestep ts){
@@ -126,6 +147,7 @@ bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
     return false;
 }
 void EditorLayer::OnEvent(Event& e){
+    m_EditorCamera.OnEvent(e);
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));
     dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
@@ -172,15 +194,15 @@ void EditorLayer::OnImGuiRender(){
     // DockSpace
     ImGuiIO& io = ImGui::GetIO();
     ImGuiStyle& style = ImGui::GetStyle();
-    float minWinSizeX = style.WindowMinSize.x;
-    style.WindowMinSize.x = 370.0f;
+    // float minWinSizeX = style.WindowMinSize.x;
+    // style.WindowMinSize.x = 370.0f;
     if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
     {
         ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     }
 
-    style.WindowMinSize.x = minWinSizeX;
+    // style.WindowMinSize.x = minWinSizeX;
 
     if (ImGui::BeginMenuBar())
     {
@@ -191,21 +213,26 @@ void EditorLayer::OnImGuiRender(){
             //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);1
             if (ImGui::MenuItem("New", "Ctrl+N"))
             {
-
+                NewScene();
+                console.AddLog("Open New Scene");
             }
 
             if (ImGui::MenuItem("Open...", "Ctrl+O"))
             {
-
+                OpenScene();
+                console.AddLog("Open Scene");
             }
 
             if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
             {
-
+                SaveScene();
+                console.AddLog("Save Scene");
             }                
 
-            if (ImGui::MenuItem("Exit")) 
+            if (ImGui::MenuItem("Exit")){
+                console.AddLog("Good bye");
                 Application::Get().Close();
+            }
 
             ImGui::EndMenu();
         }
@@ -215,6 +242,8 @@ void EditorLayer::OnImGuiRender(){
 
     m_SceneHierarchyPanel.OnImGuiRender();
     m_ContentBrowserPanel.OnImGuiRender();
+    bool p_open = true;
+    console.Draw("Console", &p_open);
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
     ImGui::Begin("Viewport");
@@ -292,4 +321,69 @@ void EditorLayer::OnImGuiRender(){
     ImGui::PopStyleVar();
 
     ImGui::End();
+}
+
+void EditorLayer::NewScene()
+{
+    
+    m_ActiveScene = CreateRef<Scene>(m_Size.x, m_Size.y);
+    m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+    m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+    
+    m_EditorScenePath = std::filesystem::path();
+}
+
+void EditorLayer::OpenScene()
+{
+    std::string filepath = FileDialogs::OpenFile("Urban Engine Scene (*.UE)\0*.UE\0");    
+    if (!filepath.empty())
+        OpenScene(filepath);
+}
+
+void EditorLayer::OpenScene(const std::filesystem::path& path)
+{
+    // if (m_SceneState != SceneState::Edit)
+    //     OnSceneStop();
+
+    if (path.extension().string() != ".UE")
+    {
+        UE_WARN("Could not load {0} - not a scene file", path.filename().string());
+        return;
+    }
+    
+    Ref<Scene> newScene = CreateRef<Scene>(m_Size.x, m_Size.y);
+    SceneSerializer serializer(newScene);
+    if (serializer.Deserialize(path.string()))
+    {
+        m_EditorScene = newScene;
+        m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_EditorScene);
+
+        m_ActiveScene = m_EditorScene;
+        m_EditorScenePath = path;
+    }
+}
+
+void EditorLayer::SaveScene()
+{
+    if (!m_EditorScenePath.empty())
+        SerializeScene(m_ActiveScene, m_EditorScenePath);
+    else
+        SaveSceneAs();
+}
+
+void EditorLayer::SaveSceneAs()
+{
+    std::string filepath = FileDialogs::SaveFile("Urban Engine Scene (*.UE)\0*.UE\0");    
+    if (!filepath.empty())
+    {
+        SerializeScene(m_ActiveScene, filepath);
+        m_EditorScenePath = filepath;
+    }
+}
+
+void EditorLayer::SerializeScene(Ref<Scene> scene, const std::filesystem::path& path)
+{
+    SceneSerializer serializer(scene);
+    serializer.Serialize(path.string());
 }
