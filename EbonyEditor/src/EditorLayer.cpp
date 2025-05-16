@@ -6,6 +6,8 @@ EditorLayer::EditorLayer(const glm::vec2& size): m_Size(size) {}
 
 void EditorLayer::OnAttach(){
     console.AddLog("Starting");
+    m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
+    m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
     m_ActiveScene = CreateRef<Scene>(m_Size.x, m_Size.y);
     m_SceneHierarchyPanel = SceneHierarchyPanel(m_ActiveScene);
     m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 2000.0f);
@@ -19,23 +21,49 @@ void EditorLayer::OnAttach(){
     }
 
     console.AddLog("Loading Resources");
-    Ref<Model> castle = CreateRef<Model>("Resources/sponza/sponza.obj");    
+    // Ref<Model> castle = CreateRef<Model>("Resources/sponza/sponza.obj");   
+    Ref<Model> sphere = CreateRef<Model>("Resources/sphere.fbx");
 
     console.AddLog("Creating entity");
-    // glm::vec3 cubePos = {0.0f, -2.0f, 0.0f};
-    // glm::vec3 cubeSize = {50, 1, 50};
-    // auto& floorEntity = m_ActiveScene->CreateEntity("Floor");
-    // floorEntity.AddComponent<CubeComponent>().Color = {0.5f, 0.0f, 0.5f};
-    // auto& FloorTC = floorEntity.GetComponent<TransformComponent>();
-    // FloorTC.Translation = cubePos;
-    // FloorTC.Scale = cubeSize;
+    auto& camEntt = m_ActiveScene->CreateEntity("Cam");
+    camEntt.AddComponent<CameraComponent>();
+    auto& camTC = camEntt.GetComponent<TransformComponent>();
+    camTC.Translation = {0.0f, 0.7f, 5.5f};
 
-    auto& castleEntt = m_ActiveScene->CreateEntity("Castle");
-    castleEntt.AddComponent<ModelComponent>().ModelData = castle;
-    auto& ctc = castleEntt.GetComponent<TransformComponent>();
-    ctc.Translation = {0,0,0};
-    ctc.Scale = glm::vec3(0.5f);
-    console.AddLog("Done Creating entity");
+    glm::vec3 cubePos = {0.0f, -2.0f, 0.0f};
+    glm::vec3 cubeSize = {50, 1, 50};
+    auto& floorEntity = m_ActiveScene->CreateEntity("Floor");
+    auto& FloorTC = floorEntity.GetComponent<TransformComponent>();
+    auto& fbox = floorEntity.AddComponent<BoxShapeComponent>();
+    FloorTC.Translation = cubePos;
+    FloorTC.Scale = cubeSize; 
+
+    floorEntity.AddComponent<CubeComponent>().Color = {0.5f, 0.0f, 0.5f};
+    auto& frb = floorEntity.AddComponent<RigidbodyComponent>();
+    frb.Shape = fbox.Shape;
+    frb.Type = JPH::EMotionType::Static;
+    frb.Layer = Layers::NON_MOVING;
+    frb.Activate = false;
+
+    auto& sphereEntt = m_ActiveScene->CreateEntity("Sphere");
+    sphereEntt.AddComponent<ModelComponent>().ModelData = sphere;
+    auto& stc = sphereEntt.GetComponent<TransformComponent>();
+    auto& sbox = sphereEntt.AddComponent<SphereShapeComponent>();   
+
+    stc.Translation = {0,0,0};
+    auto& srb = sphereEntt.AddComponent<RigidbodyComponent>();
+    srb.Shape = sbox.Shape;
+    srb.Type = JPH::EMotionType::Dynamic;
+    srb.Layer = Layers::MOVING;    
+    srb.Activate = true;
+    srb.Velocity = glm::vec3(1);
+
+//     auto& castleEntt = m_ActiveScene->CreateEntity("Castle");
+//     castleEntt.AddComponent<ModelComponent>().ModelData = castle;
+//     auto& ctc = castleEntt.GetComponent<TransformComponent>();
+//     ctc.Translation = {0,0,0};
+//     ctc.Scale = glm::vec3(0.5f);
+//     console.AddLog("Done Creating entity");
 }
 
 void EditorLayer::OnUpdate(Timestep ts){
@@ -56,11 +84,25 @@ void EditorLayer::OnUpdate(Timestep ts){
     int mouseX = (int)mx;
     int mouseY = (int)my;
 
-    // m_ActiveScene->OnUpdateRuntime(ts, mouseX, mouseY, viewportSize);
-    m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera, mouseX, mouseY, viewportSize);
-    m_EditorCamera.OnUpdate(ts);
-    if(m_ViewportFocused && m_ViewportHovered)
-        m_ActiveScene->OnMouseInput(Input::GetMouseX(), Input::GetMouseY(), Input::IsMouseButtonPressed(0), ts);
+    switch (m_SceneState)
+    {
+        case SceneState::Edit:
+        {
+            // m_ActiveScene->OnUpdateRuntime(ts, mouseX, mouseY, viewportSize);
+            m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera, mouseX, mouseY, viewportSize);
+            m_EditorCamera.OnUpdate(ts);            
+            if(m_ViewportFocused && m_ViewportHovered)
+                m_ActiveScene->OnMouseInput(Input::GetMouseX(), Input::GetMouseY(), Input::IsMouseButtonPressed(0), ts);
+            break;
+        }
+        case SceneState::Play:
+        {
+            m_ActiveScene->OnUpdateRuntime(ts, mouseX, mouseY, viewportSize);
+            break;
+        }
+    }
+
+        
 }
 
 bool EditorLayer::OnKeyPressed(KeyPressedEvent& e){
@@ -320,6 +362,36 @@ void EditorLayer::OnImGuiRender(){
     ImGui::End();
     ImGui::PopStyleVar();
 
+    UI_Toolbar();
+
+    ImGui::End();
+}
+
+void EditorLayer::UI_Toolbar()
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+    auto& colors = ImGui::GetStyle().Colors;
+    const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+    const auto& buttonActive = colors[ImGuiCol_ButtonActive];
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
+
+    ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+    float size = ImGui::GetWindowHeight() - 4.0f;
+    Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconPlay : m_IconStop;
+    ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+    if (ImGui::ImageButton("##play",(ImTextureID)icon->GetRendererID(), ImVec2(size, size)))
+    {
+        if (m_SceneState == SceneState::Edit)
+            OnScenePlay();
+        else if (m_SceneState == SceneState::Play)
+            OnSceneStop();
+    }
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor(3);
     ImGui::End();
 }
 
@@ -342,8 +414,8 @@ void EditorLayer::OpenScene()
 
 void EditorLayer::OpenScene(const std::filesystem::path& path)
 {
-    // if (m_SceneState != SceneState::Edit)
-    //     OnSceneStop();
+    if (m_SceneState != SceneState::Edit)
+        OnSceneStop();
 
     if (path.extension().string() != ".UE")
     {
@@ -386,4 +458,34 @@ void EditorLayer::SerializeScene(Ref<Scene> scene, const std::filesystem::path& 
 {
     SceneSerializer serializer(scene);
     serializer.Serialize(path.string());
+}
+
+void EditorLayer::OnScenePlay()
+{
+    m_SceneState = SceneState::Play;
+
+    m_EditorScene = Scene::Copy(m_ActiveScene);
+    m_ActiveScene->OnRuntimeStart();
+
+    m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+}
+
+void EditorLayer::OnSceneStop()
+{
+    m_SceneState = SceneState::Edit;
+
+    m_ActiveScene->OnRuntimeStop();
+    m_ActiveScene = m_EditorScene;
+
+    m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+}
+
+void EditorLayer::OnDuplicateEntity()
+{
+    if (m_SceneState != SceneState::Edit)
+        return;
+
+    Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+    if (selectedEntity)
+        m_EditorScene->DuplicateEntity(selectedEntity);
 }

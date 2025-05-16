@@ -6,7 +6,7 @@ set target="Targets\%1"
 
 rem generate cmake build files
 
-cmake -S . -B %target% -DCMAKE_BUILD_TYPE=%1
+cmake -S . -B %target% -DCMAKE_BUILD_TYPE=%1 -DCMAKE_CXX_FLAGS_DEBUG="/MTd" -DCMAKE_C_FLAGS_DEBUG="/MTd"
 
 rem compile cmake build files
 

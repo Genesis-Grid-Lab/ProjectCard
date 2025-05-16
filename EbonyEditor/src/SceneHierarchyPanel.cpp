@@ -76,6 +76,7 @@ namespace UE {
 	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
 	{
 		auto& tag = entity.GetComponent<TagComponent>().Tag;
+		int mID;		
 		
 		ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
@@ -97,7 +98,15 @@ namespace UE {
 		if (opened)
 		{
 			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-			bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
+			bool opened = false;
+			if(entity.HasComponent<ModelComponent>()){
+				auto& modcomp = entity.GetComponent<ModelComponent>();												
+				opened = ImGui::TreeNodeEx((void*)9817239, flags, "Model");				
+			}
+			if(entity.HasComponent<CameraComponent>()){
+				auto& modcomp = entity.GetComponent<CameraComponent>();												
+				opened = ImGui::TreeNodeEx((void*)9817238, flags, "Camera");				
+			}
 			if (opened)
 				ImGui::TreePop();
 			ImGui::TreePop();

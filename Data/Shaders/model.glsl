@@ -103,6 +103,7 @@ uniform sampler2D texture_normal1;
 uniform vec3 u_LightPos;
 uniform vec3 u_ViewPos;
 uniform vec3 u_Color;
+uniform float u_Transparancy;
 
 uniform bool u_UseNormalMap;
 uniform bool u_UseDiffuseMap;
@@ -149,7 +150,7 @@ void main()
 
     vec3 specular = vec3(0.2) * spec;
     
-    FragColor = vec4(ambient + diffuse + specular, 1.0);
+    FragColor = vec4(ambient + diffuse + specular, u_Transparancy);
     
     color2 = v_EntityID;
 }
