@@ -2,7 +2,6 @@
 
 #include <imgui.h>
 #include <imgui_internal.h>
-
 #include <glm/gtc/type_ptr.hpp>
 
 #include <cstring>
@@ -106,6 +105,22 @@ namespace UE {
 			if(entity.HasComponent<CameraComponent>()){
 				auto& modcomp = entity.GetComponent<CameraComponent>();												
 				opened = ImGui::TreeNodeEx((void*)9817238, flags, "Camera");				
+			}
+			if(entity.HasComponent<RigidbodyComponent>()){
+				auto& modcomp = entity.GetComponent<RigidbodyComponent>();												
+				opened = ImGui::TreeNodeEx((void*)9817237, flags, "Rigidbody");				
+			}
+			if(entity.HasComponent<BoxShapeComponent>()){
+				auto& modcomp = entity.GetComponent<BoxShapeComponent>();												
+				opened = ImGui::TreeNodeEx((void*)9817236, flags, "BoxShape");				
+			}
+			if(entity.HasComponent<CubeComponent>()){
+				auto& modcomp = entity.GetComponent<CubeComponent>();												
+				opened = ImGui::TreeNodeEx((void*)9817235, flags, "Cube");				
+			}
+			if(entity.HasComponent<SphereShapeComponent>()){
+				auto& modcomp = entity.GetComponent<SphereShapeComponent>();												
+				opened = ImGui::TreeNodeEx((void*)9817234, flags, "SphereShape");				
 			}
 			if (opened)
 				ImGui::TreePop();
@@ -268,23 +283,39 @@ namespace UE {
 					}
 				}
 
-				// if (!m_SelectionContext.HasComponent<Rigidbody2DComponent>())
-				// {
-				// 	if (ImGui::MenuItem("Rigidbody 2D"))
-				// 	{
-				// 		m_SelectionContext.AddComponent<Rigidbody2DComponent>();
-				// 		ImGui::CloseCurrentPopup();
-				// 	}
-				// }
+				if (!m_SelectionContext.HasComponent<RigidbodyComponent>())
+				{
+					if (ImGui::MenuItem("Rigidbody 3D"))
+					{
+						m_SelectionContext.AddComponent<RigidbodyComponent>();
+						ImGui::CloseCurrentPopup();
+					}
+				}
 
-				// if (!m_SelectionContext.HasComponent<BoxCollider2DComponent>())
-				// {
-				// 	if (ImGui::MenuItem("Box Collider 2D"))
-				// 	{
-				// 		m_SelectionContext.AddComponent<BoxCollider2DComponent>();
-				// 		ImGui::CloseCurrentPopup();
-				// 	}
-				// }
+				if (!m_SelectionContext.HasComponent<BoxShapeComponent>())
+				{
+					if (ImGui::MenuItem("Box Shape"))
+					{
+						m_SelectionContext.AddComponent<BoxShapeComponent>();
+						ImGui::CloseCurrentPopup();
+					}
+				}
+				if (!m_SelectionContext.HasComponent<SphereShapeComponent>())
+				{
+					if (ImGui::MenuItem("Sphere Shape"))
+					{
+						m_SelectionContext.AddComponent<SphereShapeComponent>();
+						ImGui::CloseCurrentPopup();
+					}
+				}
+				if (!m_SelectionContext.HasComponent<CubeComponent>())
+				{
+					if (ImGui::MenuItem("Cube"))
+					{
+						m_SelectionContext.AddComponent<CubeComponent>();
+						ImGui::CloseCurrentPopup();
+					}
+				}
 
 			ImGui::EndPopup();
 		}
@@ -382,40 +413,50 @@ namespace UE {
 			ImGui::DragFloat("Tiling Factor", &component.TilingFactor, 0.1f, 0.0f, 100.0f);
 		});
 
-		// DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto& component)
-		// {
-		// 	const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic"};
-		// 	const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
-		// 	if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
-		// 	{
-		// 		for (int i = 0; i < 2; i++)
-		// 		{
-		// 			bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
-		// 			if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
-		// 			{
-		// 				currentBodyTypeString = bodyTypeStrings[i];
-		// 				component.Type = (Rigidbody2DComponent::BodyType)i;
-		// 			}
+		DrawComponent<ModelComponent>("Model", entity, [](auto& component)
+		{
+			
+		});
 
-		// 			if (isSelected)
-		// 				ImGui::SetItemDefaultFocus();
-		// 		}
+		DrawComponent<RigidbodyComponent>("Rigidbody #D", entity, [](auto& component)
+		{
+			const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic"};
+			const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
+			if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
+			{
+				for (int i = 0; i < 2; i++)
+				{
+					bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
+					if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
+					{
+						currentBodyTypeString = bodyTypeStrings[i];
+						component.Type = RigidBody3DBodyTypeFromString(currentBodyTypeString);
+					}
 
-		// 		ImGui::EndCombo();
-		// 	}
+					if (isSelected)
+						ImGui::SetItemDefaultFocus();
+				}
 
-		// 	ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
-		// });
+				ImGui::EndCombo();
+			}
 
-		// DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)
-		// {
-		// 	ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
-		// 	ImGui::DragFloat2("Size", glm::value_ptr(component.Size));
-		// 	ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
-		// 	ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
-		// 	ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
-		// 	ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
-		// });
+			// ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+		});
+
+		DrawComponent<BoxShapeComponent>("Box Shape", entity, [](auto& component)
+		{
+			
+		});
+
+		DrawComponent<SphereShapeComponent>("Sphere Shape", entity, [](auto& component)
+		{
+			
+		});
+
+		DrawComponent<CubeComponent>("Cube", entity, [](auto& component)
+		{
+			ImGui::DragFloat3("Color", glm::value_ptr(component.Color));
+		});
 
 	}
 

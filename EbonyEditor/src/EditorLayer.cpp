@@ -23,6 +23,7 @@ void EditorLayer::OnAttach(){
     console.AddLog("Loading Resources");
     // Ref<Model> castle = CreateRef<Model>("Resources/sponza/sponza.obj");   
     Ref<Model> sphere = CreateRef<Model>("Resources/sphere.fbx");
+    Ref<Model> cube = CreateRef<Model>("Resources/cube.fbx");
 
     console.AddLog("Creating entity");
     auto& camEntt = m_ActiveScene->CreateEntity("Cam");
@@ -30,7 +31,7 @@ void EditorLayer::OnAttach(){
     auto& camTC = camEntt.GetComponent<TransformComponent>();
     camTC.Translation = {0.0f, 0.7f, 5.5f};
 
-    glm::vec3 cubePos = {0.0f, -2.0f, 0.0f};
+    glm::vec3 cubePos = {0.0f, 0.0f, 0.0f};
     glm::vec3 cubeSize = {50, 1, 50};
     auto& floorEntity = m_ActiveScene->CreateEntity("Floor");
     auto& FloorTC = floorEntity.GetComponent<TransformComponent>();
@@ -57,6 +58,19 @@ void EditorLayer::OnAttach(){
     srb.Layer = Layers::MOVING;    
     srb.Activate = true;
     srb.Velocity = glm::vec3(1);
+
+    auto& cubeEntt = m_ActiveScene->CreateEntity("Cube");
+    cubeEntt.AddComponent<ModelComponent>().ModelData = cube;
+    auto& ctc = cubeEntt.GetComponent<TransformComponent>();
+    stc.Translation = {-1.0f, 0.0f, 2.0f};
+    cubeEntt.AddComponent<BoxShapeComponent>();
+    auto& crb = cubeEntt.AddComponent<RigidbodyComponent>();
+    crb.Layer = Layers::MOVING;
+    crb.Type = JPH::EMotionType::Dynamic;
+    crb.Activate = true;
+    crb.Velocity = glm::vec3(1);
+
+
 
 //     auto& castleEntt = m_ActiveScene->CreateEntity("Castle");
 //     castleEntt.AddComponent<ModelComponent>().ModelData = castle;
@@ -276,6 +290,24 @@ void EditorLayer::OnImGuiRender(){
                 Application::Get().Close();
             }
 
+            ImGui::EndMenu();
+        }
+        if(ImGui::BeginMenu("View")){
+
+            if(ImGui::MenuItem("Show Boxes"))
+            {
+                if(m_ActiveScene->ShowBoxes)
+                    m_ActiveScene->ShowBoxes = false;
+                else
+                    m_ActiveScene->ShowBoxes = true;
+            }
+
+            if(ImGui::MenuItem("Show Cams")){
+                if(m_ActiveScene->ShowCams)
+                    m_ActiveScene->ShowCams = false;
+                else
+                    m_ActiveScene->ShowCams = true;
+            }
             ImGui::EndMenu();
         }
 
