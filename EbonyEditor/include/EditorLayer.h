@@ -43,6 +43,8 @@ private:
     glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
     Entity m_SelectionContext;
     EditorCamera m_EditorCamera;
+    std::string filePath;
+    std::string filePathName;
     int m_GizmoType = -1;
 
     enum class SceneState

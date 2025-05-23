@@ -415,7 +415,9 @@ namespace UE {
 
 		DrawComponent<ModelComponent>("Model", entity, [](auto& component)
 		{
-			
+			ImGui::Text(component.ModelData->m_Path.c_str());
+			if(component.AnimationData)
+				ImGui::Text(component.AnimationData->m_Path.c_str());
 		});
 
 		DrawComponent<RigidbodyComponent>("Rigidbody #D", entity, [](auto& component)
@@ -440,6 +442,7 @@ namespace UE {
 				ImGui::EndCombo();
 			}
 
+			DrawVec3Control("Velocity", component.Velocity);
 			// ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
 		});
 

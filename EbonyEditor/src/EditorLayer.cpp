@@ -1,4 +1,5 @@
 #include "EditorLayer.h"
+#include <ImGuiFileDialog.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -21,15 +22,49 @@ void EditorLayer::OnAttach(){
     }
 
     console.AddLog("Loading Resources");
-    // Ref<Model> castle = CreateRef<Model>("Resources/sponza/sponza.obj");   
+    Ref<Model> castle = CreateRef<Model>("Resources/sponza/sponza.obj");   
     Ref<Model> sphere = CreateRef<Model>("Resources/sphere.fbx");
     Ref<Model> cube = CreateRef<Model>("Resources/cube.fbx");
+    Ref<Model> Man = CreateRef<Model>("Resources/dancing_vampire.dae");
+    Ref<Animation> ManAnim = CreateRef<Animation>("Resources/dancing_vampire.dae", Man);
 
     console.AddLog("Creating entity");
     auto& camEntt = m_ActiveScene->CreateEntity("Cam");
     camEntt.AddComponent<CameraComponent>();
     auto& camTC = camEntt.GetComponent<TransformComponent>();
-    camTC.Translation = {0.0f, 0.7f, 5.5f};
+    camTC.Translation = {0.0f, 2.7f, 5.5f};
+
+    class CameraController : public ScriptableEntity
+    {
+    public:
+        virtual void OnCreate() override
+        {
+            auto& translation = GetComponent<TransformComponent>().Translation;
+            translation.x = rand() % 10 - 5.0f;
+        }
+
+        virtual void OnDestroy() override
+        {
+        }
+
+        virtual void OnUpdate(Timestep ts) override
+        {
+            auto& translation = GetComponent<TransformComponent>().Translation;
+
+            float speed = 5.0f;
+
+            // if (Input::IsKeyPressed(Key::A))
+            //     translation.x -= speed * ts;
+            // if (Input::IsKeyPressed(Key::D))
+            //     translation.x += speed * ts;
+            // if (Input::IsKeyPressed(Key::W))
+            //     translation.z -= speed * ts;
+            // if (Input::IsKeyPressed(Key::S))
+            //     translation.z += speed * ts;
+        }
+    };
+
+    camEntt.AddComponent<NativeScriptComponent>().Bind<CameraController>();
 
     glm::vec3 cubePos = {0.0f, 0.0f, 0.0f};
     glm::vec3 cubeSize = {50, 1, 50};
@@ -51,33 +86,123 @@ void EditorLayer::OnAttach(){
     auto& stc = sphereEntt.GetComponent<TransformComponent>();
     auto& sbox = sphereEntt.AddComponent<SphereShapeComponent>();   
 
-    stc.Translation = {0,0,0};
+    stc.Translation = {0,2,0};
     auto& srb = sphereEntt.AddComponent<RigidbodyComponent>();
     srb.Shape = sbox.Shape;
     srb.Type = JPH::EMotionType::Dynamic;
     srb.Layer = Layers::MOVING;    
-    srb.Activate = true;
-    srb.Velocity = glm::vec3(1);
+    srb.Activate = true;    
 
     auto& cubeEntt = m_ActiveScene->CreateEntity("Cube");
     cubeEntt.AddComponent<ModelComponent>().ModelData = cube;
     auto& ctc = cubeEntt.GetComponent<TransformComponent>();
-    stc.Translation = {-1.0f, 0.0f, 2.0f};
+    ctc.Translation = {-1.0f, 2.0f, 2.0f};
     cubeEntt.AddComponent<BoxShapeComponent>();
     auto& crb = cubeEntt.AddComponent<RigidbodyComponent>();
     crb.Layer = Layers::MOVING;
     crb.Type = JPH::EMotionType::Dynamic;
-    crb.Activate = true;
-    crb.Velocity = glm::vec3(1);
+    crb.Activate = true;    
+
+    auto& manEntt = m_ActiveScene->CreateEntity("Man");
+    auto& manTC = manEntt.GetComponent<TransformComponent>();
+    manTC.Translation = {1, 2, 0};
+    manTC.Scale = glm::vec3(0.1f);
+    manTC.Rotation = {90, 0, 90};
+    auto& manModel = manEntt.AddComponent<ModelComponent>();
+    manModel.ModelData = Man;
+    manModel.AnimationData = ManAnim;
+    manEntt.AddComponent<BoxShapeComponent>();
+    auto& manRB = manEntt.AddComponent<RigidbodyComponent>();
+    manRB.Layer = Layers::MOVING;
+    manRB.Type = JPH::EMotionType::Dynamic;
+    manRB.Activate = true;    
+
+    class PlayerController : public ScriptableEntity
+    {
+    public:
+        virtual void OnCreate() override
+        {
+            m_Scene = GetScene();
+            auto& translation = GetComponent<TransformComponent>().Translation;
+            translation.x = rand() % 10 - 5.0f;
+
+            auto view = m_Scene->GetRegistry().view<TransformComponent, CameraComponent>();
+			for (auto entity : view)
+			{
+				auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+				
+				if (camera.Primary)
+				{
+					Cam = Entity(entity, m_Scene);
+					break;
+				}
+			}
+        }
+
+        virtual void OnDestroy() override
+        {
+        }
+
+        virtual void OnUpdate(Timestep ts) override
+        {
+            auto& rigid = GetComponent<RigidbodyComponent>();
+            auto& translation = GetComponent<TransformComponent>().Translation;
+            auto& camTC = Cam.GetComponent<TransformComponent>().Translation;  
+            auto& model = GetComponent<ModelComponent>().ModelData;
+            auto& modelAnim = GetComponent<ModelComponent>().AnimationData;
+            camTC.x = translation.x;
+            camTC.y = translation.y + 2;
+            camTC.z = translation.z + 5;
+            float speed = 23.0f;
+
+            if (Input::IsKeyPressed(Key::A))
+            {
+                rigid.Velocity.x = -1 * speed * ts;
+            }
+            else if (Input::IsKeyPressed(Key::D))
+                rigid.Velocity.x = 1 * speed * ts;
+            else
+                rigid.Velocity.x = 0;       
+                 
+            if (Input::IsKeyPressed(Key::W)){
+                rigid.Velocity.z = -1 * speed * ts;                           
+                Renderer3D::RunAnimation(modelAnim, ts);
+            }
+            else if (Input::IsKeyPressed(Key::S))                
+                rigid.Velocity.z = 1 * speed * ts;
+            else
+                rigid.Velocity.z = 0;            
+
+            if(rigid.Velocity != glm::vec3(0)){
+                glm::normalize(rigid.Velocity);
+            }
+
+            GetBodyInterface().AddLinearVelocity(
+				rigid.ID,
+				JPH::Vec3(rigid.Velocity.x, rigid.Velocity.y, rigid.Velocity.z));
+        }
+
+    private:
+        Scene* m_Scene;
+        Entity Cam;
+    };
+
+    manEntt.AddComponent<NativeScriptComponent>().Bind<PlayerController>();
 
 
+    // auto& castleEntt = m_ActiveScene->CreateEntity("Castle");
+    // castleEntt.AddComponent<ModelComponent>().ModelData = castle;
+    // auto& casttc = castleEntt.GetComponent<TransformComponent>();
+    // casttc.Translation = {0,0,0};
+    // casttc.Scale = glm::vec3(0.5f);
+    // auto& castbox = castleEntt.AddComponent<BoxShapeComponent>();    
+    // auto& castrb = castleEntt.AddComponent<RigidbodyComponent>();
+    // castrb.Shape = castbox.Shape;
+    // castrb.Type = JPH::EMotionType::Static;
+    // castrb.Layer = Layers::NON_MOVING;
+    // castrb.Activate = false;
 
-//     auto& castleEntt = m_ActiveScene->CreateEntity("Castle");
-//     castleEntt.AddComponent<ModelComponent>().ModelData = castle;
-//     auto& ctc = castleEntt.GetComponent<TransformComponent>();
-//     ctc.Translation = {0,0,0};
-//     ctc.Scale = glm::vec3(0.5f);
-//     console.AddLog("Done Creating entity");
+    console.AddLog("Done Creating entity");
 }
 
 void EditorLayer::OnUpdate(Timestep ts){
@@ -296,17 +421,36 @@ void EditorLayer::OnImGuiRender(){
 
             if(ImGui::MenuItem("Show Boxes"))
             {
-                if(m_ActiveScene->ShowBoxes)
+                if(m_ActiveScene->ShowBoxes){
                     m_ActiveScene->ShowBoxes = false;
-                else
+                    console.AddLog("Show Boxes false");
+                }
+                else{
                     m_ActiveScene->ShowBoxes = true;
+                    console.AddLog("Show Boxes true");
+                }
             }
 
             if(ImGui::MenuItem("Show Cams")){
-                if(m_ActiveScene->ShowCams)
+                if(m_ActiveScene->ShowCams){
                     m_ActiveScene->ShowCams = false;
-                else
+                    console.AddLog("Show Cam false");
+                }
+                else{
                     m_ActiveScene->ShowCams = true;
+                    console.AddLog("Show Cam true");
+                }
+            }
+
+            if(ImGui::MenuItem("Show Boxes Play")){
+                if(m_ActiveScene->ShowBoxesPlay){
+                    m_ActiveScene->ShowBoxesPlay = false;
+                    console.AddLog("Show Boxes play false");
+                }
+                else{
+                    m_ActiveScene->ShowBoxesPlay = true;
+                    console.AddLog("Show Boxes play true");
+                }
             }
             ImGui::EndMenu();
         }
@@ -393,6 +537,35 @@ void EditorLayer::OnImGuiRender(){
 
     ImGui::End();
     ImGui::PopStyleVar();
+    
+    if (ImGuiFileDialog::Instance()->Display("OpenScene")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
+            filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+            // action
+            if(!filePathName.empty())
+                OpenScene(filePathName);
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("SaveSceneAs")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
+            std::string SavefilePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string SavefilePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+            // action
+            if (!SavefilePathName.empty())
+            {
+                SerializeScene(m_ActiveScene, SavefilePathName);
+                m_EditorScenePath = SavefilePathName; 
+            }
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }
 
     UI_Toolbar();
 
@@ -439,9 +612,12 @@ void EditorLayer::NewScene()
 
 void EditorLayer::OpenScene()
 {
-    std::string filepath = FileDialogs::OpenFile("Urban Engine Scene (*.UE)\0*.UE\0");    
-    if (!filepath.empty())
-        OpenScene(filepath);
+    // std::string filepath = FileDialogs::OpenFile("Urban Engine Scene (*.UE)\0*.UE\0");    
+    // if (!filepath.empty())
+    //     OpenScene(filepath);
+    IGFD::FileDialogConfig config;
+    config.path = ".";
+    ImGuiFileDialog::Instance()->OpenDialog("OpenScene", "Choose File", ".UE", config);  
 }
 
 void EditorLayer::OpenScene(const std::filesystem::path& path)
@@ -478,12 +654,16 @@ void EditorLayer::SaveScene()
 
 void EditorLayer::SaveSceneAs()
 {
-    std::string filepath = FileDialogs::SaveFile("Urban Engine Scene (*.UE)\0*.UE\0");    
-    if (!filepath.empty())
-    {
-        SerializeScene(m_ActiveScene, filepath);
-        m_EditorScenePath = filepath;
-    }
+    // std::string filepath = FileDialogs::SaveFile("Urban Engine Scene (*.UE)\0*.UE\0");    
+    // if (!filepath.empty())
+    // {
+    //     SerializeScene(m_ActiveScene, filepath);
+    //     m_EditorScenePath = filepath;
+    // }
+
+    IGFD::FileDialogConfig config;
+    config.path = ".";
+    ImGuiFileDialog::Instance()->OpenDialog("SaveSceneAs", "Choose File", ".UE", config); 
 }
 
 void EditorLayer::SerializeScene(Ref<Scene> scene, const std::filesystem::path& path)
