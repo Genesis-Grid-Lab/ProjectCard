@@ -22,25 +22,27 @@ void EditorLayer::OnAttach(){
     }
 
     console.AddLog("Loading Resources");
-    Ref<Model> castle = CreateRef<Model>("Resources/sponza/sponza.obj");   
+    // Ref<Model> castle = CreateRef<Model>("Resources/sponza/sponza.obj");   
     Ref<Model> sphere = CreateRef<Model>("Resources/sphere.fbx");
     Ref<Model> cube = CreateRef<Model>("Resources/cube.fbx");
-    Ref<Model> Man = CreateRef<Model>("Resources/dancing_vampire.dae");
-    Ref<Animation> ManAnim = CreateRef<Animation>("Resources/dancing_vampire.dae", Man);
+    Ref<Model> Man = CreateRef<Model>("Resources/Animations/Idle.fbx");
+    Ref<Animation> ManAnim = CreateRef<Animation>("Resources/Animations/Idle.fbx", Man);
+    Ref<Animation> runAnim = CreateRef<Animation>("Resources/Animations/Running.fbx", Man);
+    Ref<Animation> jumpAnim = CreateRef<Animation>("Resources/Animations/jump.fbx", Man);
 
     console.AddLog("Creating entity");
     auto& camEntt = m_ActiveScene->CreateEntity("Cam");
-    camEntt.AddComponent<CameraComponent>();
+    auto& sceneCam = camEntt.AddComponent<CameraComponent>();
     auto& camTC = camEntt.GetComponent<TransformComponent>();
-    camTC.Translation = {0.0f, 2.7f, 5.5f};
+    camTC.Translation = {0.0f, 2.7f, 5.5f};  
+    // camTC.Rotation = {0,0,0};
 
     class CameraController : public ScriptableEntity
     {
     public:
         virtual void OnCreate() override
         {
-            auto& translation = GetComponent<TransformComponent>().Translation;
-            translation.x = rand() % 10 - 5.0f;
+
         }
 
         virtual void OnDestroy() override
@@ -53,28 +55,20 @@ void EditorLayer::OnAttach(){
 
             float speed = 5.0f;
 
-            // if (Input::IsKeyPressed(Key::A))
-            //     translation.x -= speed * ts;
-            // if (Input::IsKeyPressed(Key::D))
-            //     translation.x += speed * ts;
-            // if (Input::IsKeyPressed(Key::W))
-            //     translation.z -= speed * ts;
-            // if (Input::IsKeyPressed(Key::S))
-            //     translation.z += speed * ts;
         }
     };
 
     camEntt.AddComponent<NativeScriptComponent>().Bind<CameraController>();
-
+    UE_CORE_WARN("DONE CAM");
     glm::vec3 cubePos = {0.0f, 0.0f, 0.0f};
     glm::vec3 cubeSize = {50, 1, 50};
     auto& floorEntity = m_ActiveScene->CreateEntity("Floor");
+    floorEntity.AddComponent<CubeComponent>().Color = {0.5f, 0.0f, 0.5f};
     auto& FloorTC = floorEntity.GetComponent<TransformComponent>();
     auto& fbox = floorEntity.AddComponent<BoxShapeComponent>();
     FloorTC.Translation = cubePos;
     FloorTC.Scale = cubeSize; 
 
-    floorEntity.AddComponent<CubeComponent>().Color = {0.5f, 0.0f, 0.5f};
     auto& frb = floorEntity.AddComponent<RigidbodyComponent>();
     frb.Shape = fbox.Shape;
     frb.Type = JPH::EMotionType::Static;
@@ -107,11 +101,14 @@ void EditorLayer::OnAttach(){
     auto& manTC = manEntt.GetComponent<TransformComponent>();
     manTC.Translation = {1, 2, 0};
     manTC.Scale = glm::vec3(0.1f);
-    manTC.Rotation = {90, 0, 90};
+    manTC.Rotation = {0, glm::radians(180.0f), 0};
     auto& manModel = manEntt.AddComponent<ModelComponent>();
     manModel.ModelData = Man;
-    manModel.AnimationData = ManAnim;
+    manModel.AnimationData["idle"] = ManAnim;
+    manModel.AnimationData["run"] = runAnim;
+    manModel.AnimationData["jump"] = jumpAnim;
     manEntt.AddComponent<BoxShapeComponent>();
+    // auto& manRB = manEntt.AddComponent<CharacterComponent>();
     auto& manRB = manEntt.AddComponent<RigidbodyComponent>();
     manRB.Layer = Layers::MOVING;
     manRB.Type = JPH::EMotionType::Dynamic;
@@ -145,46 +142,112 @@ void EditorLayer::OnAttach(){
 
         virtual void OnUpdate(Timestep ts) override
         {
+            // auto& rigid = GetComponent<CharacterComponent>();
             auto& rigid = GetComponent<RigidbodyComponent>();
             auto& translation = GetComponent<TransformComponent>().Translation;
+            auto& rotation = GetComponent<TransformComponent>().Rotation;
             auto& camTC = Cam.GetComponent<TransformComponent>().Translation;  
+            auto& camRot = Cam.GetComponent<TransformComponent>().Rotation;
             auto& model = GetComponent<ModelComponent>().ModelData;
             auto& modelAnim = GetComponent<ModelComponent>().AnimationData;
-            camTC.x = translation.x;
-            camTC.y = translation.y + 2;
-            camTC.z = translation.z + 5;
-            float speed = 23.0f;
+            auto& camCam = Cam.GetComponent<CameraComponent>().Camera;
+           
+            float speed = 10.0f;
 
-            if (Input::IsKeyPressed(Key::A))
-            {
-                rigid.Velocity.x = -1 * speed * ts;
-            }
-            else if (Input::IsKeyPressed(Key::D))
-                rigid.Velocity.x = 1 * speed * ts;
-            else
-                rigid.Velocity.x = 0;       
-                 
-            if (Input::IsKeyPressed(Key::W)){
-                rigid.Velocity.z = -1 * speed * ts;                           
-                Renderer3D::RunAnimation(modelAnim, ts);
-            }
-            else if (Input::IsKeyPressed(Key::S))                
-                rigid.Velocity.z = 1 * speed * ts;
-            else
-                rigid.Velocity.z = 0;            
+            bool running = false, idle = true, jump = false;
 
-            if(rigid.Velocity != glm::vec3(0)){
-                glm::normalize(rigid.Velocity);
+            glm::vec3 moveDir = glm::vec3(0.0f);       
+            glm::vec3 camTarget = translation + glm::vec3(0, 1, 0);
+            
+            if (Input::IsMouseButtonPressed(Mouse::ButtonRight)) {
+                glm::vec2 mouseDelta = Input::GetMouseDelta(); // You need to implement or wrap this
+                UE_CORE_INFO("Delta {}", mouseDelta);
+                m_Yaw += mouseDelta.x * m_MouseSensitivity;
+                m_Pitch += mouseDelta.y * m_MouseSensitivity;                
+                m_Pitch = glm::clamp(m_Pitch, -89.0f, 89.0f);
             }
 
-            GetBodyInterface().AddLinearVelocity(
-				rigid.ID,
-				JPH::Vec3(rigid.Velocity.x, rigid.Velocity.y, rigid.Velocity.z));
+            glm::vec3 camDir;
+            camDir.x = cos(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
+            camDir.y = sin(glm::radians(m_Pitch));
+            camDir.z = sin(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
+            camDir = glm::normalize(camDir);
+            
+            glm::vec3 camPos = camTarget - camDir * m_Distance;
+
+            camTC = camPos;
+
+            glm::vec3 forward = glm::normalize(glm::vec3(camDir.x, 0, camDir.z));
+            glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0)));
+
+            if (Input::IsKeyPressed(Key::W)) moveDir -= forward; running = true;
+            if (Input::IsKeyPressed(Key::S)) moveDir += forward; running = true;
+            if (Input::IsKeyPressed(Key::A)) moveDir += right; running = true;
+            if (Input::IsKeyPressed(Key::D)) moveDir -= right; running = true;
+            if (Input::IsKeyPressed(Key::Space)) moveDir.y = 1; jump = true;
+            // float rotSpeed = 2.5f;
+            // if (Input::IsKeyPressed(Key::A)) rotation.y -= rotSpeed * ts;
+            // if (Input::IsKeyPressed(Key::D)) rotation.y += rotSpeed * ts;
+
+            if (glm::length(moveDir) > 0.0f) {
+                moveDir = glm::normalize(moveDir);
+                rigid.Velocity = moveDir * speed;
+
+                float targetYaw = glm::degrees(atan2(moveDir.x, moveDir.z));
+                rotation.y = glm::radians(targetYaw); // Or + depending on orientation
+            } else {
+                rigid.Velocity = glm::vec3(0.0f);
+                idle = true;
+                running = false;
+                jump = false;
+            }
+            if(running){
+                idle = false;
+                jump = false;
+                Renderer3D::RunAnimation(modelAnim["run"], ts);
+            }
+
+            if(idle){
+                Renderer3D::RunAnimation(modelAnim["idle"], ts);
+            }
+
+            if(jump){
+                running = false;
+                Renderer3D::RunAnimation(modelAnim["jump"], ts);
+            }
+
+   
+            // rigid.Character->SetLinearVelocity(JPH::Vec3(rigid.Velocity.x, rigid.Velocity.y, rigid.Velocity.z));            
+            GetBodyInterface().SetLinearVelocity(rigid.ID,JPH::Vec3(rigid.Velocity.x, rigid.Velocity.y, rigid.Velocity.z));
+
+            // rigid.Character->GetGroundNormal().SetY(0.0f);
+
+            glm::vec3 camOffset = glm::vec3(
+                -glm::sin(rotation.y) * 5.0f,
+                2.0f,
+                -glm::cos(rotation.y) * 5.0f
+            );
+
+            camCam.SetTarget(camTarget);
+            camCam.SetMode(m_Mode);
+            // camCam.SetOffset(camOffset);
+            camCam.SetOffset(camDir * 5.0f + glm::vec3(0, 2, 0)); // Third-person view
+
+           
+        }
+
+        virtual void OnImGuiRender() override{
+            ImGui::Text("TESTING");
         }
 
     private:
         Scene* m_Scene;
         Entity Cam;
+        CameraMode m_Mode = CameraMode::ThirdPerson;
+        float m_Yaw = 0.0f;
+        float m_Pitch = 0.0f;
+        float m_MouseSensitivity = 0.1f;
+        float m_Distance = 5.0f; // Camera distance behind player
     };
 
     manEntt.AddComponent<NativeScriptComponent>().Bind<PlayerController>();
@@ -203,6 +266,7 @@ void EditorLayer::OnAttach(){
     // castrb.Activate = false;
 
     console.AddLog("Done Creating entity");
+    UE_CORE_INFO("Done Creating entity");
 }
 
 void EditorLayer::OnUpdate(Timestep ts){

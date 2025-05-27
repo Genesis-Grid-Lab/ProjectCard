@@ -416,11 +416,11 @@ namespace UE {
 		DrawComponent<ModelComponent>("Model", entity, [](auto& component)
 		{
 			ImGui::Text(component.ModelData->m_Path.c_str());
-			if(component.AnimationData)
-				ImGui::Text(component.AnimationData->m_Path.c_str());
+			// if(component.AnimationData)
+			// 	ImGui::Text(component.AnimationData->m_Path.c_str());
 		});
 
-		DrawComponent<RigidbodyComponent>("Rigidbody #D", entity, [](auto& component)
+		DrawComponent<RigidbodyComponent>("Rigidbody 3D", entity, [](auto& component)
 		{
 			const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic"};
 			const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
@@ -459,6 +459,12 @@ namespace UE {
 		DrawComponent<CubeComponent>("Cube", entity, [](auto& component)
 		{
 			ImGui::DragFloat3("Color", glm::value_ptr(component.Color));
+		});
+
+		DrawComponent<NativeScriptComponent>("Native Script", entity, [](auto& component)
+		{
+			if(component.Instance)
+			component.Instance->OnImGuiRender();
 		});
 
 	}
