@@ -23,6 +23,7 @@ void EditorLayer::OnAttach(){
 
     console.AddLog("Loading Resources");
     // Ref<Model> castle = CreateRef<Model>("Resources/sponza/sponza.obj");   
+    // Ref<Model> castle = CreateRef<Model>("Resources/sponza2/source/glTF/Sponza.gltf");   
     Ref<Model> sphere = CreateRef<Model>("Resources/sphere.fbx");
     Ref<Model> cube = CreateRef<Model>("Resources/cube.fbx");
     Ref<Model> Man = CreateRef<Model>("Resources/Animations/Idle.fbx");
@@ -108,8 +109,8 @@ void EditorLayer::OnAttach(){
     manModel.AnimationData["run"] = runAnim;
     manModel.AnimationData["jump"] = jumpAnim;
     manEntt.AddComponent<BoxShapeComponent>();
-    // auto& manRB = manEntt.AddComponent<CharacterComponent>();
-    auto& manRB = manEntt.AddComponent<RigidbodyComponent>();
+    auto& manRB = manEntt.AddComponent<CharacterComponent>();
+    // auto& manRB = manEntt.AddComponent<RigidbodyComponent>();
     manRB.Layer = Layers::MOVING;
     manRB.Type = JPH::EMotionType::Dynamic;
     manRB.Activate = true;    
@@ -142,8 +143,8 @@ void EditorLayer::OnAttach(){
 
         virtual void OnUpdate(Timestep ts) override
         {
-            // auto& rigid = GetComponent<CharacterComponent>();
-            auto& rigid = GetComponent<RigidbodyComponent>();
+            auto& rigid = GetComponent<CharacterComponent>();
+            // auto& rigid = GetComponent<RigidbodyComponent>();
             auto& translation = GetComponent<TransformComponent>().Translation;
             auto& rotation = GetComponent<TransformComponent>().Rotation;
             auto& camTC = Cam.GetComponent<TransformComponent>().Translation;  
@@ -201,24 +202,28 @@ void EditorLayer::OnAttach(){
                 running = false;
                 jump = false;
             }
+
+            
             if(running){
                 idle = false;
                 jump = false;
                 Renderer3D::RunAnimation(modelAnim["run"], ts);
             }
 
+            if(jump){
+                running = false;
+                idle = false;
+                Renderer3D::RunAnimation(modelAnim["jump"], ts);
+            }
+
             if(idle){
                 Renderer3D::RunAnimation(modelAnim["idle"], ts);
             }
 
-            if(jump){
-                running = false;
-                Renderer3D::RunAnimation(modelAnim["jump"], ts);
-            }
 
    
-            // rigid.Character->SetLinearVelocity(JPH::Vec3(rigid.Velocity.x, rigid.Velocity.y, rigid.Velocity.z));            
-            GetBodyInterface().SetLinearVelocity(rigid.ID,JPH::Vec3(rigid.Velocity.x, rigid.Velocity.y, rigid.Velocity.z));
+            rigid.Character->SetLinearVelocity(JPH::Vec3(rigid.Velocity.x, rigid.Velocity.y, rigid.Velocity.z));            
+            // GetBodyInterface().SetLinearVelocity(rigid.ID,JPH::Vec3(rigid.Velocity.x, rigid.Velocity.y, rigid.Velocity.z));
 
             // rigid.Character->GetGroundNormal().SetY(0.0f);
 
